@@ -1,0 +1,194 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  SUPER_ADMIN
+  ADMIN
+  DISPATCHER
+  EDITOR
+  VIEWER
+}
+
+enum LeadStatus {
+  NEW
+  REVIEWED
+  ASSIGNED
+  IN_PROGRESS
+  COMPLETED
+  CLOSED
+}
+
+enum ArtisanStatus {
+  PENDING
+  APPROVED
+  SUSPENDED
+  REJECTED
+}
+
+enum AssignmentStatus {
+  PROPOSED
+  ASSIGNED
+  ACCEPTED
+  DECLINED
+  COMPLETED
+  CANCELLED
+}
+
+enum ContentStatus {
+  DRAFT
+  PUBLISHED
+  ARCHIVED
+}
+
+model User {
+  id                  String             @id @default(cuid())
+  fullName            String
+  email               String             @unique
+  passwordHash        String
+  role                UserRole           @default(VIEWER)
+  isActive            Boolean            @default(true)
+  permissionOverrides Json?
+  createdAt           DateTime           @default(now())
+  updatedAt           DateTime           @updatedAt
+
+  assignedLeads       Lead[]             @relation("LeadAssignedBy")
+  createdAssignments  ArtisanAssignment[]
+  auditLogs           AuditLog[]
+
+  @@index([role])
+}
+
+model AuditLog {
+  id         String   @id @default(cuid())
+  actorId    String
+  action     String
+  targetType String
+  targetId   String?
+  metadata   Json?
+  before     Json?
+  after      Json?
+  createdAt  DateTime @default(now())
+
+  actor      User     @relation(fields: [actorId], references: [id], onDelete: Cascade)
+
+  @@index([actorId])
+  @@index([targetType])
+  @@index([createdAt])
+}
+
+model NotificationLog {
+  id          String   @id @default(cuid())
+  channel     String
+  recipient   String
+  subject     String
+  payload     Json?
+  status      String
+  error       String?
+  createdAt   DateTime @default(now())
+
+  @@index([channel])
+  @@index([recipient])
+  @@index([createdAt])
+}
+
+model Setting {
+  id          String   @id @default(cuid())
+  key         String   @unique
+  value       Json
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model ContentEntry {
+  id               String        @id @default(cuid())
+  slug             String        @unique
+  title            String
+  summary          String?
+  body             String
+  status           ContentStatus @default(DRAFT)
+  seoTitle         String?
+  seoDescription   String?
+  publishedAt      DateTime?
+  createdAt        DateTime      @default(now())
+  updatedAt        DateTime      @updatedAt
+
+  @@index([status])
+}
+
+model Lead {
+  id                    String              @id @default(cuid())
+  fullName              String
+  email                 String
+  phone                 String
+  serviceNeeded         String
+  city                  String
+  postcode              String
+  jobDescription        String
+  urgencyLevel          String
+  preferredContact      String
+  status                LeadStatus          @default(NEW)
+  notes                 String?
+  assignedArtisanId     String?
+  assignedById          String?
+  createdAt             DateTime            @default(now())
+  updatedAt             DateTime            @updatedAt
+
+  assignedArtisan       Artisan?            @relation(fields: [assignedArtisanId], references: [id])
+  assignedBy            User?               @relation("LeadAssignedBy", fields: [assignedById], references: [id])
+  assignments           ArtisanAssignment[]
+
+  @@index([status])
+  @@index([city])
+  @@index([serviceNeeded])
+}
+
+model Artisan {
+  id                      String              @id @default(cuid())
+  fullName                String
+  businessName            String
+  email                   String              @unique
+  phone                   String
+  tradeCategory           String
+  citiesCovered           Json
+  yearsExperience         String
+  certifications          String
+  profileDescription      String
+  consentGiven            Boolean
+  status                  ArtisanStatus       @default(PENDING)
+  internalNotes           String?
+  approvedAt              DateTime?
+  createdAt               DateTime            @default(now())
+  updatedAt               DateTime            @updatedAt
+
+  leads                   Lead[]
+  assignments             ArtisanAssignment[]
+
+  @@index([status])
+  @@index([tradeCategory])
+}
+
+model ArtisanAssignment {
+  id              String           @id @default(cuid())
+  leadId          String
+  artisanId       String
+  assignedById    String
+  notes           String?
+  status          AssignmentStatus @default(ASSIGNED)
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+
+  lead            Lead             @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  artisan         Artisan          @relation(fields: [artisanId], references: [id], onDelete: Cascade)
+  assignedBy      User             @relation(fields: [assignedById], references: [id], onDelete: Cascade)
+
+  @@index([leadId])
+  @@index([artisanId])
+  @@index([status])
+}

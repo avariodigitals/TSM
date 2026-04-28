@@ -1,65 +1,136 @@
-import Image from "next/image";
+import Link from "next/link";
+import HeroSearch from "@/components/home/HeroSearch";
+import ServiceCard from "@/components/home/ServiceCard";
+import CityCard from "@/components/home/CityCard";
+import HowItWorks from "@/components/home/HowItWorks";
+import TrustSection from "@/components/home/TrustSection";
+import CTASection from "@/components/home/CTASection";
+import FAQ from "@/components/home/FAQ";
+import PageSection from "@/components/ui/PageSection";
+import Button from "@/components/ui/Button";
+import { faqs } from "@/lib/data";
+import { getCatalogData } from "@/lib/catalog";
+import { getHomeHeroContent } from "@/lib/page-content";
 
-export default function Home() {
+export default async function HomePage() {
+  const { services, cities, mappings } = await getCatalogData();
+  const homeHero = await getHomeHeroContent();
+
+  const featuredServices = services.slice(0, 8);
+  const featuredCities = cities.slice(0, 8);
+
+  const cityWithCounts = featuredCities.map((city) => ({
+    city,
+    serviceCount: mappings.filter((m) => m.citySlug === city.slug).length,
+  }));
+
+  const orgJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "Organization",
+    name: "Total Serve Maintenance Ltd",
+    url: "https://totalserve.co.uk",
+    logo: "https://totalserve.co.uk/tml-logo.webp",
+    areaServed: "United Kingdom",
+    sameAs: [],
+  };
+
+  const websiteJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    name: "Total Serve Maintenance Ltd",
+    url: "https://totalserve.co.uk",
+    potentialAction: {
+      "@type": "SearchAction",
+      target: "https://totalserve.co.uk/search?service={service}&city={city}",
+      "query-input": ["required name=service", "required name=city"],
+    },
+  };
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
+    <>
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(orgJsonLd) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteJsonLd) }} />
+      <HeroSearch services={services} cities={cities} content={homeHero} />
+
+      <PageSection background="white" id="services" className="py-16 lg:py-20 reveal-in">
+        <div className="text-center mb-10">
+          <div className="inline-flex items-center gap-2 bg-[#00AEEF]/10 rounded-full px-4 py-2 mb-4">
+            <span className="text-[#00AEEF] text-sm font-semibold">What We Cover</span>
+          </div>
+          <h2 className="text-3xl sm:text-4xl font-black text-[#231F20] mb-4">Popular Services</h2>
+          <p className="text-gray-500 text-lg max-w-xl mx-auto">
+            From emergency repairs to planned maintenance, browse the trades we cover across the UK.
           </p>
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 reveal-stagger">
+          {featuredServices.map((service) => (
+            <ServiceCard key={service.id} service={service} />
+          ))}
         </div>
-      </main>
-    </div>
+        <div className="text-center mt-8">
+          <Link href="/services">
+            <Button variant="outline" size="md">View All Services</Button>
+          </Link>
+        </div>
+      </PageSection>
+
+      <PageSection background="light" id="cities" className="py-16 lg:py-20 reveal-in">
+        <div className="text-center mb-10">
+          <div className="inline-flex items-center gap-2 bg-[#00AEEF]/10 rounded-full px-4 py-2 mb-4">
+            <span className="text-[#00AEEF] text-sm font-semibold">UK Coverage</span>
+          </div>
+          <h2 className="text-3xl sm:text-4xl font-black text-[#231F20] mb-4">Browse by City</h2>
+          <p className="text-gray-500 text-lg max-w-xl mx-auto">
+            We currently serve these major UK cities with more being added regularly.
+          </p>
+        </div>
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 reveal-stagger">
+          {cityWithCounts.map(({ city, serviceCount }) => (
+            <CityCard key={city.id} city={city} serviceCount={serviceCount} />
+          ))}
+        </div>
+      </PageSection>
+
+      <PageSection background="white" id="how-it-works" className="reveal-in">
+        <HowItWorks />
+      </PageSection>
+
+      <PageSection background="light" className="py-12 lg:py-16 reveal-up">
+        <CTASection variant="emergency" />
+      </PageSection>
+
+      <PageSection background="white" className="reveal-in">
+        <TrustSection />
+      </PageSection>
+
+      <PageSection background="light" className="py-12 lg:py-16 reveal-up">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <CTASection variant="enquiry" />
+          <CTASection variant="artisan" />
+        </div>
+      </PageSection>
+
+      <PageSection background="white" className="py-16 lg:py-24 reveal-in">
+        <div className="max-w-3xl mx-auto">
+          <div className="text-center mb-10">
+            <div className="inline-flex items-center gap-2 bg-[#00AEEF]/10 rounded-full px-4 py-2 mb-4">
+              <span className="text-[#00AEEF] text-sm font-semibold">Common Questions</span>
+            </div>
+            <h2 className="text-3xl sm:text-4xl font-black text-[#231F20] mb-4">
+              Frequently Asked Questions
+            </h2>
+            <p className="text-gray-500 text-lg">Everything you need to know about how Total Serve works.</p>
+          </div>
+          <div className="reveal-stagger">
+            <FAQ items={faqs} maxVisible={5} />
+          </div>
+          <div className="text-center mt-8">
+            <Link href="/faq">
+              <Button variant="outline" size="md">View All FAQs</Button>
+            </Link>
+          </div>
+        </div>
+      </PageSection>
+    </>
   );
 }
