@@ -2,14 +2,29 @@ import Image from "next/image";
 import Link from "next/link";
 import type { City, Service } from "@/lib/types";
 
-const companyLinks = [
-  { href: "/about", label: "About Total Serve" },
-  { href: "/blog", label: "Blog" },
-  { href: "/how-it-works", label: "How It Works" },
-  { href: "/register-artisan", label: "Register as Artisan" },
-  { href: "/faq", label: "FAQ" },
-  { href: "/contact", label: "Contact Us" },
-];
+type FooterLink = {
+  href: string;
+  label: string;
+};
+
+type FooterContent = {
+  locationLabel: string;
+  locationValue: string;
+  servicesTitle: string;
+  servicesViewAllLabel: string;
+  servicesViewAllHref: string;
+  citiesTitle: string;
+  companyTitle: string;
+  companyLinks: FooterLink[];
+  urgentTitle: string;
+  urgentButtonLabel: string;
+  urgentButtonHref: string;
+  copyrightText: string;
+  developerPrefix: string;
+  developerName: string;
+  developerUrl: string;
+  legalLinks: FooterLink[];
+};
 
 export default function Footer({
   logoUrl,
@@ -18,6 +33,7 @@ export default function Footer({
   supportPhone,
   services,
   cities,
+  content,
 }: {
   logoUrl: string;
   companyBlurb: string;
@@ -25,6 +41,7 @@ export default function Footer({
   supportPhone: string;
   services: Service[];
   cities: City[];
+  content: FooterContent;
 }) {
   const topServices = services.slice(0, 6);
   const topCities = cities.slice(0, 8);
@@ -56,7 +73,7 @@ export default function Footer({
             <div className="text-sm text-gray-500 space-y-1">
               <div className="flex items-center gap-2">
                 <span>📍</span>
-                <span>United Kingdom</span>
+                <span>{content.locationLabel}: {content.locationValue}</span>
               </div>
               <div className="flex items-center gap-2">
                 <span>📧</span>
@@ -72,7 +89,7 @@ export default function Footer({
           {/* Services */}
           <div>
             <h4 className="font-bold text-white text-sm uppercase tracking-wider mb-4">
-              Our Services
+              {content.servicesTitle}
             </h4>
             <ul className="space-y-2">
               {topServices.map((service) => (
@@ -86,8 +103,8 @@ export default function Footer({
                 </li>
               ))}
               <li>
-                <Link href="/services" className="text-[#00AEEF] text-sm font-medium hover:underline">
-                  View all services →
+                <Link href={content.servicesViewAllHref} className="text-[#00AEEF] text-sm font-medium hover:underline">
+                  {content.servicesViewAllLabel}
                 </Link>
               </li>
             </ul>
@@ -96,7 +113,7 @@ export default function Footer({
           {/* Cities */}
           <div>
             <h4 className="font-bold text-white text-sm uppercase tracking-wider mb-4">
-              Cities We Cover
+              {content.citiesTitle}
             </h4>
             <ul className="space-y-2">
               {topCities.map((city) => (
@@ -115,10 +132,10 @@ export default function Footer({
           {/* Company */}
           <div>
             <h4 className="font-bold text-white text-sm uppercase tracking-wider mb-4">
-              Company
+              {content.companyTitle}
             </h4>
             <ul className="space-y-2">
-              {companyLinks.map((link) => (
+              {content.companyLinks.map((link) => (
                 <li key={link.href}>
                   <Link
                     href={link.href}
@@ -130,12 +147,12 @@ export default function Footer({
               ))}
             </ul>
             <div className="mt-6 p-4 rounded-xl bg-[#2E3192]/40 border border-[#2E3192]">
-              <p className="text-xs text-gray-300 mb-2 font-semibold">Need help urgently?</p>
+              <p className="text-xs text-gray-300 mb-2 font-semibold">{content.urgentTitle}</p>
               <Link
-                href="/enquiry?urgency=emergency"
+                href={content.urgentButtonHref}
                 className="inline-block text-xs font-bold text-white bg-[#ED1C24] hover:bg-[#c91920] px-3 py-2 rounded-lg transition-colors"
               >
-                🚨 Submit Emergency Enquiry
+                {content.urgentButtonLabel}
               </Link>
             </div>
           </div>
@@ -143,23 +160,23 @@ export default function Footer({
 
         <div className="border-t border-gray-700 mt-12 pt-6 flex flex-col sm:flex-row items-center justify-between gap-3">
           <p className="text-gray-500 text-xs">
-            © {new Date().getFullYear()} Total Serve Maintenance Ltd. All rights reserved.
+            {content.copyrightText.replace("{year}", String(new Date().getFullYear()))}
           </p>
           <p className="text-xs text-gray-500">
-            Developed by{" "}
+            {content.developerPrefix}{" "}
             <a
-              href="https://www.avariodigitals.com"
+              href={content.developerUrl}
               target="_blank"
               rel="noopener noreferrer"
               className="text-[#00AEEF] hover:underline"
             >
-              Avario Digitals
+              {content.developerName}
             </a>
           </p>
           <div className="flex gap-4 text-xs text-gray-500">
-            <Link href="/privacy" className="hover:text-gray-300 transition-colors">Privacy Policy</Link>
-            <Link href="/terms" className="hover:text-gray-300 transition-colors">Terms of Use</Link>
-            <Link href="/cookies" className="hover:text-gray-300 transition-colors">Cookies</Link>
+            {content.legalLinks.map((link) => (
+              <Link key={link.href} href={link.href} className="hover:text-gray-300 transition-colors">{link.label}</Link>
+            ))}
           </div>
         </div>
       </div>

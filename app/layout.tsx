@@ -113,6 +113,25 @@ type SiteGeneralSettings = {
   siteUrl: string;
 };
 
+type SiteFooterSettings = {
+  locationLabel: string;
+  locationValue: string;
+  servicesTitle: string;
+  servicesViewAllLabel: string;
+  servicesViewAllHref: string;
+  citiesTitle: string;
+  companyTitle: string;
+  companyLinks: Array<{ href: string; label: string }>;
+  urgentTitle: string;
+  urgentButtonLabel: string;
+  urgentButtonHref: string;
+  copyrightText: string;
+  developerPrefix: string;
+  developerName: string;
+  developerUrl: string;
+  legalLinks: Array<{ href: string; label: string }>;
+};
+
 const defaultIntegrations: IntegrationsConfig = {
   analytics: { enabled: false, script: "" },
   searchConsole: { enabled: false, verification: "" },
@@ -140,16 +159,47 @@ const defaultGeneral: SiteGeneralSettings = {
   siteUrl: "https://totalserve.co.uk",
 };
 
+const defaultFooter: SiteFooterSettings = {
+  locationLabel: "Location",
+  locationValue: "United Kingdom",
+  servicesTitle: "Our Services",
+  servicesViewAllLabel: "View all services →",
+  servicesViewAllHref: "/services",
+  citiesTitle: "Cities We Cover",
+  companyTitle: "Company",
+  companyLinks: [
+    { href: "/about", label: "About Total Serve" },
+    { href: "/blog", label: "Blog" },
+    { href: "/how-it-works", label: "How It Works" },
+    { href: "/register-artisan", label: "Register as Artisan" },
+    { href: "/faq", label: "FAQ" },
+    { href: "/contact", label: "Contact Us" },
+  ],
+  urgentTitle: "Need help urgently?",
+  urgentButtonLabel: "🚨 Submit Emergency Enquiry",
+  urgentButtonHref: "/enquiry?urgency=emergency",
+  copyrightText: "© {year} Total Serve Maintenance Ltd. All rights reserved.",
+  developerPrefix: "Developed by",
+  developerName: "Avario Digitals",
+  developerUrl: "https://www.avariodigitals.com",
+  legalLinks: [
+    { href: "/privacy", label: "Privacy Policy" },
+    { href: "/terms", label: "Terms of Use" },
+    { href: "/cookies", label: "Cookies" },
+  ],
+};
+
 export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const [integrations, branding, headerFooter, general, catalog] = await Promise.all([
+  const [integrations, branding, headerFooter, general, footer, catalog] = await Promise.all([
     getSettingValue<IntegrationsConfig>("site.integrations", defaultIntegrations),
     getSettingValue<SiteBrandingSettings>("site.branding", defaultBranding),
     getSettingValue<SiteHeaderFooterSettings>("site.headerFooter", defaultHeaderFooter),
     getSettingValue<SiteGeneralSettings>("site.general", defaultGeneral),
+    getSettingValue<SiteFooterSettings>("site.footer", defaultFooter),
     getCatalogData(),
   ]);
 
@@ -165,7 +215,7 @@ export default async function RootLayout({
       <body className="min-h-full flex flex-col bg-white text-[#231F20]">
         <SiteChrome
           integrations={integrations}
-          siteSettings={{ branding, headerFooter, general, catalog: { services: catalog.services, cities: catalog.cities } }}
+          siteSettings={{ branding, headerFooter, general, footer, catalog: { services: catalog.services, cities: catalog.cities } }}
         >
           {children}
         </SiteChrome>

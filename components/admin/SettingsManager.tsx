@@ -56,6 +56,46 @@ type NotificationEmailTemplates = {
   userAssignment: { subject: string; body: string };
 };
 
+type SiteFooterSettings = {
+  locationLabel: string;
+  locationValue: string;
+  servicesTitle: string;
+  servicesViewAllLabel: string;
+  servicesViewAllHref: string;
+  citiesTitle: string;
+  companyTitle: string;
+  companyLinks: Array<{ href: string; label: string }>;
+  urgentTitle: string;
+  urgentButtonLabel: string;
+  urgentButtonHref: string;
+  copyrightText: string;
+  developerPrefix: string;
+  developerName: string;
+  developerUrl: string;
+  legalLinks: Array<{ href: string; label: string }>;
+};
+
+type ContactPageSettings = {
+  introTitle: string;
+  introBody: string;
+  details: Array<{ icon: string; label: string; value: string }>;
+  emergencyTitle: string;
+  emergencyBody: string;
+  formTitle: string;
+  formNameLabel: string;
+  formEmailLabel: string;
+  formSubjectLabel: string;
+  formMessageLabel: string;
+  formNamePlaceholder: string;
+  formEmailPlaceholder: string;
+  formSubjectPlaceholder: string;
+  formMessagePlaceholder: string;
+  submitButtonLabel: string;
+  submittingButtonLabel: string;
+  successTitle: string;
+  successBody: string;
+};
+
 const pageSize = 12;
 
 export default function SettingsManager({ settings }: { settings: SettingRow[] }) {
@@ -161,6 +201,77 @@ export default function SettingsManager({ settings }: { settings: SettingRow[] }
         ].join("\n"),
       },
     }
+  );
+
+  const [footerDraft, setFooterDraft] = useState<SiteFooterSettings>(
+    (settingsMap.get("site.footer") as SiteFooterSettings | undefined) ?? {
+      locationLabel: "Location",
+      locationValue: "United Kingdom",
+      servicesTitle: "Our Services",
+      servicesViewAllLabel: "View all services →",
+      servicesViewAllHref: "/services",
+      citiesTitle: "Cities We Cover",
+      companyTitle: "Company",
+      companyLinks: [
+        { href: "/about", label: "About Total Serve" },
+        { href: "/blog", label: "Blog" },
+        { href: "/how-it-works", label: "How It Works" },
+        { href: "/register-artisan", label: "Register as Artisan" },
+        { href: "/faq", label: "FAQ" },
+        { href: "/contact", label: "Contact Us" },
+      ],
+      urgentTitle: "Need help urgently?",
+      urgentButtonLabel: "🚨 Submit Emergency Enquiry",
+      urgentButtonHref: "/enquiry?urgency=emergency",
+      copyrightText: "© {year} Total Serve Maintenance Ltd. All rights reserved.",
+      developerPrefix: "Developed by",
+      developerName: "Avario Digitals",
+      developerUrl: "https://www.avariodigitals.com",
+      legalLinks: [
+        { href: "/privacy", label: "Privacy Policy" },
+        { href: "/terms", label: "Terms of Use" },
+        { href: "/cookies", label: "Cookies" },
+      ],
+    }
+  );
+  const [footerCompanyLinksDraft, setFooterCompanyLinksDraft] = useState(
+    JSON.stringify(footerDraft.companyLinks, null, 2)
+  );
+  const [footerLegalLinksDraft, setFooterLegalLinksDraft] = useState(
+    JSON.stringify(footerDraft.legalLinks, null, 2)
+  );
+
+  const [contactPageDraft, setContactPageDraft] = useState<ContactPageSettings>(
+    (settingsMap.get("page.contact") as ContactPageSettings | undefined) ?? {
+      introTitle: "Get In Touch",
+      introBody:
+        "For general enquiries, media requests, partnerships or support — use the contact form or reach us directly via the details below.",
+      details: [
+        { icon: "📧", label: "Email", value: "enquiries@totalserve.co.uk" },
+        { icon: "📞", label: "Phone", value: "0800 123 4567" },
+        { icon: "📍", label: "Location", value: "United Kingdom" },
+        { icon: "🕒", label: "Hours", value: "Mon–Fri: 8am–6pm\\nSat: 9am–2pm" },
+      ],
+      emergencyTitle: "🚨 Emergency Enquiry?",
+      emergencyBody:
+        "For urgent maintenance issues, please use our dedicated enquiry form and select \"Emergency\" urgency level.",
+      formTitle: "Send Us a Message",
+      formNameLabel: "Full Name",
+      formEmailLabel: "Email Address",
+      formSubjectLabel: "Subject",
+      formMessageLabel: "Message",
+      formNamePlaceholder: "Your name",
+      formEmailPlaceholder: "you@example.com",
+      formSubjectPlaceholder: "How can we help?",
+      formMessagePlaceholder: "Your message...",
+      submitButtonLabel: "Send Message →",
+      submittingButtonLabel: "Sending...",
+      successTitle: "Message Sent",
+      successBody: "Thank you for getting in touch. We will respond within 1–2 business days.",
+    }
+  );
+  const [contactDetailsDraft, setContactDetailsDraft] = useState(
+    JSON.stringify(contactPageDraft.details, null, 2)
   );
 
   const filteredSettings = useMemo(() => {
@@ -295,6 +406,99 @@ export default function SettingsManager({ settings }: { settings: SettingRow[] }
               Save Header/Footer
             </button>
           </div>
+        </div>
+
+        <div className="rounded-xl border border-gray-200 p-4 space-y-3">
+          <h2 className="text-lg font-black text-[#231F20]">Footer Content</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            <input value={footerDraft.servicesTitle} onChange={(event) => setFooterDraft((current) => ({ ...current, servicesTitle: event.target.value }))} placeholder="Services section title" className="rounded-md border border-gray-300 px-3 py-2" />
+            <input value={footerDraft.citiesTitle} onChange={(event) => setFooterDraft((current) => ({ ...current, citiesTitle: event.target.value }))} placeholder="Cities section title" className="rounded-md border border-gray-300 px-3 py-2" />
+            <input value={footerDraft.companyTitle} onChange={(event) => setFooterDraft((current) => ({ ...current, companyTitle: event.target.value }))} placeholder="Company section title" className="rounded-md border border-gray-300 px-3 py-2" />
+            <input value={footerDraft.locationLabel} onChange={(event) => setFooterDraft((current) => ({ ...current, locationLabel: event.target.value }))} placeholder="Location label" className="rounded-md border border-gray-300 px-3 py-2" />
+            <input value={footerDraft.locationValue} onChange={(event) => setFooterDraft((current) => ({ ...current, locationValue: event.target.value }))} placeholder="Location value" className="rounded-md border border-gray-300 px-3 py-2" />
+            <input value={footerDraft.servicesViewAllLabel} onChange={(event) => setFooterDraft((current) => ({ ...current, servicesViewAllLabel: event.target.value }))} placeholder="View all services label" className="rounded-md border border-gray-300 px-3 py-2" />
+            <input value={footerDraft.servicesViewAllHref} onChange={(event) => setFooterDraft((current) => ({ ...current, servicesViewAllHref: event.target.value }))} placeholder="View all services href" className="rounded-md border border-gray-300 px-3 py-2" />
+            <input value={footerDraft.urgentTitle} onChange={(event) => setFooterDraft((current) => ({ ...current, urgentTitle: event.target.value }))} placeholder="Urgent box title" className="rounded-md border border-gray-300 px-3 py-2" />
+            <input value={footerDraft.urgentButtonLabel} onChange={(event) => setFooterDraft((current) => ({ ...current, urgentButtonLabel: event.target.value }))} placeholder="Urgent button label" className="rounded-md border border-gray-300 px-3 py-2" />
+            <input value={footerDraft.urgentButtonHref} onChange={(event) => setFooterDraft((current) => ({ ...current, urgentButtonHref: event.target.value }))} placeholder="Urgent button href" className="rounded-md border border-gray-300 px-3 py-2 md:col-span-2" />
+            <input value={footerDraft.copyrightText} onChange={(event) => setFooterDraft((current) => ({ ...current, copyrightText: event.target.value }))} placeholder="Copyright text (use {year})" className="rounded-md border border-gray-300 px-3 py-2 md:col-span-2" />
+            <input value={footerDraft.developerPrefix} onChange={(event) => setFooterDraft((current) => ({ ...current, developerPrefix: event.target.value }))} placeholder="Developer prefix" className="rounded-md border border-gray-300 px-3 py-2" />
+            <input value={footerDraft.developerName} onChange={(event) => setFooterDraft((current) => ({ ...current, developerName: event.target.value }))} placeholder="Developer name" className="rounded-md border border-gray-300 px-3 py-2" />
+            <input value={footerDraft.developerUrl} onChange={(event) => setFooterDraft((current) => ({ ...current, developerUrl: event.target.value }))} placeholder="Developer URL" className="rounded-md border border-gray-300 px-3 py-2 md:col-span-2" />
+          </div>
+          <textarea value={footerCompanyLinksDraft} onChange={(event) => setFooterCompanyLinksDraft(event.target.value)} rows={5} placeholder='Company links JSON: [{"href":"/about","label":"About"}]' className="w-full rounded-md border border-gray-300 px-3 py-2 font-mono text-xs" />
+          <textarea value={footerLegalLinksDraft} onChange={(event) => setFooterLegalLinksDraft(event.target.value)} rows={4} placeholder='Legal links JSON: [{"href":"/privacy","label":"Privacy Policy"}]' className="w-full rounded-md border border-gray-300 px-3 py-2 font-mono text-xs" />
+          <button
+            type="button"
+            onClick={() => {
+              try {
+                const companyLinks = JSON.parse(footerCompanyLinksDraft) as SiteFooterSettings["companyLinks"];
+                const legalLinks = JSON.parse(footerLegalLinksDraft) as SiteFooterSettings["legalLinks"];
+                void saveStructuredSetting(
+                  "site.footer",
+                  { ...footerDraft, companyLinks, legalLinks },
+                  "Footer content and links configuration",
+                  "Footer content saved."
+                );
+              } catch {
+                setError("Footer links JSON is invalid.");
+                showToast("Footer links JSON is invalid.", "error");
+              }
+            }}
+            className="rounded-lg bg-[#2E3192] px-4 py-2 font-semibold text-white disabled:opacity-50"
+            disabled={isSaving}
+          >
+            Save Footer Content
+          </button>
+        </div>
+
+        <div className="rounded-xl border border-gray-200 p-4 space-y-3">
+          <h2 className="text-lg font-black text-[#231F20]">Contact Page Content</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            <input value={contactPageDraft.introTitle} onChange={(event) => setContactPageDraft((current) => ({ ...current, introTitle: event.target.value }))} placeholder="Intro title" className="rounded-md border border-gray-300 px-3 py-2" />
+            <input value={contactPageDraft.formTitle} onChange={(event) => setContactPageDraft((current) => ({ ...current, formTitle: event.target.value }))} placeholder="Form title" className="rounded-md border border-gray-300 px-3 py-2" />
+          </div>
+          <textarea value={contactPageDraft.introBody} onChange={(event) => setContactPageDraft((current) => ({ ...current, introBody: event.target.value }))} rows={3} placeholder="Intro body" className="w-full rounded-md border border-gray-300 px-3 py-2" />
+          <textarea value={contactDetailsDraft} onChange={(event) => setContactDetailsDraft(event.target.value)} rows={6} placeholder='Contact cards JSON: [{"icon":"📧","label":"Email","value":"enquiries@..."}]' className="w-full rounded-md border border-gray-300 px-3 py-2 font-mono text-xs" />
+          <input value={contactPageDraft.emergencyTitle} onChange={(event) => setContactPageDraft((current) => ({ ...current, emergencyTitle: event.target.value }))} placeholder="Emergency box title" className="w-full rounded-md border border-gray-300 px-3 py-2" />
+          <textarea value={contactPageDraft.emergencyBody} onChange={(event) => setContactPageDraft((current) => ({ ...current, emergencyBody: event.target.value }))} rows={2} placeholder="Emergency box body" className="w-full rounded-md border border-gray-300 px-3 py-2" />
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            <input value={contactPageDraft.formNameLabel} onChange={(event) => setContactPageDraft((current) => ({ ...current, formNameLabel: event.target.value }))} placeholder="Name label" className="rounded-md border border-gray-300 px-3 py-2" />
+            <input value={contactPageDraft.formEmailLabel} onChange={(event) => setContactPageDraft((current) => ({ ...current, formEmailLabel: event.target.value }))} placeholder="Email label" className="rounded-md border border-gray-300 px-3 py-2" />
+            <input value={contactPageDraft.formSubjectLabel} onChange={(event) => setContactPageDraft((current) => ({ ...current, formSubjectLabel: event.target.value }))} placeholder="Subject label" className="rounded-md border border-gray-300 px-3 py-2" />
+            <input value={contactPageDraft.formMessageLabel} onChange={(event) => setContactPageDraft((current) => ({ ...current, formMessageLabel: event.target.value }))} placeholder="Message label" className="rounded-md border border-gray-300 px-3 py-2" />
+            <input value={contactPageDraft.formNamePlaceholder} onChange={(event) => setContactPageDraft((current) => ({ ...current, formNamePlaceholder: event.target.value }))} placeholder="Name placeholder" className="rounded-md border border-gray-300 px-3 py-2" />
+            <input value={contactPageDraft.formEmailPlaceholder} onChange={(event) => setContactPageDraft((current) => ({ ...current, formEmailPlaceholder: event.target.value }))} placeholder="Email placeholder" className="rounded-md border border-gray-300 px-3 py-2" />
+            <input value={contactPageDraft.formSubjectPlaceholder} onChange={(event) => setContactPageDraft((current) => ({ ...current, formSubjectPlaceholder: event.target.value }))} placeholder="Subject placeholder" className="rounded-md border border-gray-300 px-3 py-2" />
+            <input value={contactPageDraft.formMessagePlaceholder} onChange={(event) => setContactPageDraft((current) => ({ ...current, formMessagePlaceholder: event.target.value }))} placeholder="Message placeholder" className="rounded-md border border-gray-300 px-3 py-2" />
+            <input value={contactPageDraft.submitButtonLabel} onChange={(event) => setContactPageDraft((current) => ({ ...current, submitButtonLabel: event.target.value }))} placeholder="Submit button label" className="rounded-md border border-gray-300 px-3 py-2" />
+            <input value={contactPageDraft.submittingButtonLabel} onChange={(event) => setContactPageDraft((current) => ({ ...current, submittingButtonLabel: event.target.value }))} placeholder="Submitting button label" className="rounded-md border border-gray-300 px-3 py-2" />
+            <input value={contactPageDraft.successTitle} onChange={(event) => setContactPageDraft((current) => ({ ...current, successTitle: event.target.value }))} placeholder="Success title" className="rounded-md border border-gray-300 px-3 py-2" />
+            <input value={contactPageDraft.successBody} onChange={(event) => setContactPageDraft((current) => ({ ...current, successBody: event.target.value }))} placeholder="Success message" className="rounded-md border border-gray-300 px-3 py-2" />
+          </div>
+
+          <button
+            type="button"
+            onClick={() => {
+              try {
+                const details = JSON.parse(contactDetailsDraft) as ContactPageSettings["details"];
+                void saveStructuredSetting(
+                  "page.contact",
+                  { ...contactPageDraft, details },
+                  "Contact page body and form content",
+                  "Contact page content saved."
+                );
+              } catch {
+                setError("Contact details JSON is invalid.");
+                showToast("Contact details JSON is invalid.", "error");
+              }
+            }}
+            className="rounded-lg bg-[#2E3192] px-4 py-2 font-semibold text-white disabled:opacity-50"
+            disabled={isSaving}
+          >
+            Save Contact Page Content
+          </button>
         </div>
 
         <div className="rounded-xl border border-gray-200 p-4 space-y-3">

@@ -41,6 +41,24 @@ type SiteChromeSettings = {
     supportEmail: string;
     supportPhone: string;
   };
+  footer: {
+    locationLabel: string;
+    locationValue: string;
+    servicesTitle: string;
+    servicesViewAllLabel: string;
+    servicesViewAllHref: string;
+    citiesTitle: string;
+    companyTitle: string;
+    companyLinks: Array<{ href: string; label: string }>;
+    urgentTitle: string;
+    urgentButtonLabel: string;
+    urgentButtonHref: string;
+    copyrightText: string;
+    developerPrefix: string;
+    developerName: string;
+    developerUrl: string;
+    legalLinks: Array<{ href: string; label: string }>;
+  };
   catalog: {
     services: Service[];
     cities: City[];
@@ -106,6 +124,7 @@ export default function SiteChrome({
         supportPhone={siteSettings.general.supportPhone}
         services={siteSettings.catalog.services}
         cities={siteSettings.catalog.cities}
+        content={siteSettings.footer}
       />
 
       {integrations.whatsapp.enabled && whatsappHref ? (
