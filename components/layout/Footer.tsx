@@ -4,6 +4,7 @@ import type { City, Service } from "@/lib/types";
 
 const companyLinks = [
   { href: "/about", label: "About Total Serve" },
+  { href: "/blog", label: "Blog" },
   { href: "/how-it-works", label: "How It Works" },
   { href: "/register-artisan", label: "Register as Artisan" },
   { href: "/faq", label: "FAQ" },

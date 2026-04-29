@@ -33,7 +33,21 @@ const whyChooseItems = [
   },
 ];
 
-export default function TrustSection() {
+type TrustSectionContent = {
+  badge: string;
+  title: string;
+  subtitle: string;
+};
+
+export default function TrustSection({ content }: { content?: TrustSectionContent }) {
+  const heading = {
+    badge: content?.badge ?? "Why Total Serve",
+    title: content?.title ?? "Why Choose Total Serve?",
+    subtitle:
+      content?.subtitle ??
+      "We're not a directory. We're a service - handling the hard work of finding the right tradesperson for you.",
+  };
+
   return (
     <div className="py-16 lg:py-24">
       {/* Stats bar */}
@@ -53,13 +67,13 @@ export default function TrustSection() {
       {/* Why choose */}
       <div className="text-center mb-12">
         <div className="inline-flex items-center gap-2 bg-[#00AEEF]/10 rounded-full px-4 py-2 mb-4">
-          <span className="text-[#00AEEF] text-sm font-semibold">Why Total Serve</span>
+          <span className="text-[#00AEEF] text-sm font-semibold">{heading.badge}</span>
         </div>
         <h2 className="text-3xl sm:text-4xl font-black text-[#231F20] mb-4">
-          Why Choose Total Serve?
+          {heading.title}
         </h2>
         <p className="text-gray-500 text-lg max-w-2xl mx-auto">
-          We&apos;re not a directory. We&apos;re a service — handling the hard work of finding the right tradesperson for you.
+          {heading.subtitle}
         </p>
       </div>
 

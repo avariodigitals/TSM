@@ -8,6 +8,7 @@ import {
 import Button from "@/components/ui/Button";
 import ServiceCard from "@/components/home/ServiceCard";
 import PageSection from "@/components/ui/PageSection";
+import { getPageHeroContent } from "@/lib/page-content";
 
 export default async function SearchPage({
   searchParams,
@@ -22,13 +23,20 @@ export default async function SearchPage({
   const city = citySlug ? await getCityBySlug(citySlug) : undefined;
   const hasMapping = service && city ? await isMappingAvailable(serviceSlug, citySlug) : false;
   const relatedServices = city ? (await getServicesForCity(citySlug)).filter((s) => s.slug !== serviceSlug).slice(0, 4) : [];
+  const pageHeroTemplate = await getPageHeroContent("search");
+  const pageHeroTitle = pageHeroTemplate.title
+    .replace("{service}", service?.name ?? "Service")
+    .replace("{city}", city?.name ?? "your city");
+  const pageHeroSubtitle = pageHeroTemplate.subtitle
+    .replace("{service}", service?.name ?? "service")
+    .replace("{city}", city?.name ?? "your city");
 
   if (!serviceSlug && !citySlug) {
     return (
       <div className="text-center py-20">
         <div className="text-5xl mb-4">🔍</div>
-        <h1 className="text-2xl font-black text-[#231F20] mb-3">Search for a Service</h1>
-        <p className="text-gray-500 mb-6">Use the form on the homepage to search by service and city.</p>
+        <h1 className="text-2xl font-black text-[#231F20] mb-3">{pageHeroTitle}</h1>
+        <p className="text-gray-500 mb-6">{pageHeroSubtitle}</p>
         <Link href="/">
           <Button variant="primary">Back to Home</Button>
         </Link>
@@ -47,10 +55,10 @@ export default async function SearchPage({
             </div>
             <div className="text-5xl mb-4">{service.icon}</div>
             <h1 className="text-4xl sm:text-5xl font-black mb-4">
-              {service.name}s in {city.name}
+              {pageHeroTitle}
             </h1>
             <p className="text-gray-300 text-lg max-w-2xl mx-auto">
-              Total Serve can connect you with a vetted, trusted {service.name.toLowerCase()} in {city.name}. Submit an enquiry and our team will match you with the right professional.
+              {pageHeroSubtitle}
             </p>
           </div>
         </div>
@@ -125,10 +133,10 @@ export default async function SearchPage({
             <span className="text-yellow-400 text-sm font-semibold">Service Not Yet Available</span>
           </div>
           <h1 className="text-3xl sm:text-4xl font-black mb-4">
-            {service ? `${service.name}s` : "That service"} in {city ? city.name : "that area"}
+            {pageHeroTitle}
           </h1>
           <p className="text-gray-300 text-lg">
-            We don&apos;t currently have coverage for this combination, but we&apos;re expanding fast. You can still submit a general enquiry and we&apos;ll do our best to help.
+            {pageHeroSubtitle}
           </p>
         </div>
       </div>

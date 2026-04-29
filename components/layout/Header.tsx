@@ -8,6 +8,7 @@ import Button from "@/components/ui/Button";
 const navLinks = [
   { href: "/", label: "Home" },
   { href: "/services", label: "Services" },
+  { href: "/blog", label: "Blog" },
   { href: "/how-it-works", label: "How It Works" },
   { href: "/register-artisan", label: "Register as Artisan" },
   { href: "/contact", label: "Contact" },
@@ -72,7 +73,7 @@ export default function Header({
 
           {/* Mobile menu toggle */}
           <button
-            className="lg:hidden p-2 rounded-lg text-[#231F20] hover:bg-gray-100 transition"
+            className="lg:hidden inline-flex items-center justify-center min-h-11 min-w-11 p-2 rounded-lg text-[#231F20] hover:bg-gray-100 transition"
             onClick={() => setMobileOpen(!mobileOpen)}
             aria-label="Toggle navigation menu"
           >
@@ -97,7 +98,7 @@ export default function Header({
                   key={link.href}
                   href={link.href}
                   onClick={() => setMobileOpen(false)}
-                  className="px-4 py-3 rounded-lg text-sm font-medium text-[#231F20] hover:text-[#00AEEF] hover:bg-[#F5F7FA] transition-colors"
+                  className="px-4 py-3.5 rounded-lg text-base font-medium text-[#231F20] hover:text-[#00AEEF] hover:bg-[#F5F7FA] transition-colors"
                 >
                   {link.label}
                 </Link>

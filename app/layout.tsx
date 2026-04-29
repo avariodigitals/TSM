@@ -5,6 +5,8 @@ import SiteChrome from "@/components/layout/SiteChrome";
 import { getSettingValue } from "@/lib/site-settings";
 import { getCatalogData } from "@/lib/catalog";
 
+export const dynamic = "force-dynamic";
+
 const inter = Inter({
   variable: "--font-geist-sans",
   subsets: ["latin"],
@@ -143,11 +145,13 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const integrations = await getSettingValue<IntegrationsConfig>("site.integrations", defaultIntegrations);
-  const branding = await getSettingValue<SiteBrandingSettings>("site.branding", defaultBranding);
-  const headerFooter = await getSettingValue<SiteHeaderFooterSettings>("site.headerFooter", defaultHeaderFooter);
-  const general = await getSettingValue<SiteGeneralSettings>("site.general", defaultGeneral);
-  const catalog = await getCatalogData();
+  const [integrations, branding, headerFooter, general, catalog] = await Promise.all([
+    getSettingValue<IntegrationsConfig>("site.integrations", defaultIntegrations),
+    getSettingValue<SiteBrandingSettings>("site.branding", defaultBranding),
+    getSettingValue<SiteHeaderFooterSettings>("site.headerFooter", defaultHeaderFooter),
+    getSettingValue<SiteGeneralSettings>("site.general", defaultGeneral),
+    getCatalogData(),
+  ]);
 
   return (
     <html lang="en" className={`${inter.variable} h-full antialiased`}>

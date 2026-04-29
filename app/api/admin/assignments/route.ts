@@ -4,7 +4,7 @@ import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { requireAdminPermission } from "@/lib/admin-auth";
 import { logAudit } from "@/lib/audit";
-import { notifyArtisanAssignment } from "@/lib/notifications";
+import { notifyArtisanAssignment, notifyUserAssignment } from "@/lib/notifications";
 
 const assignmentCreateSchema = z.object({
   leadId: z.string().min(1),
@@ -83,6 +83,19 @@ export async function POST(request: Request) {
       city: lead.city,
       notes: assignment.notes,
     });
+
+    if (lead.email) {
+      await notifyUserAssignment({
+        recipientEmail: lead.email,
+        recipientName: lead.fullName,
+        leadName: lead.fullName,
+        serviceNeeded: lead.serviceNeeded,
+        city: lead.city,
+        artisanName: artisan.fullName,
+        artisanBusinessName: artisan.businessName,
+        notes: assignment.notes,
+      });
+    }
   }
 
   await logAudit({

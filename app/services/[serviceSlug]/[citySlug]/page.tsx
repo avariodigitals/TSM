@@ -12,6 +12,7 @@ import ServiceCard from "@/components/home/ServiceCard";
 import Link from "next/link";
 import Button from "@/components/ui/Button";
 import type { Metadata } from "next";
+import { getPageHeroContent } from "@/lib/page-content";
 
 interface Props {
   params: Promise<{ serviceSlug: string; citySlug: string }>;
@@ -45,6 +46,12 @@ export default async function ServiceCityPage({ params }: Props) {
     notFound();
   }
 
+  const pageHeroTemplate = await getPageHeroContent("serviceCity");
+  const pageHeroTitle = pageHeroTemplate.title.replace("{service}", service.name).replace("{city}", city.name);
+  const pageHeroSubtitle = pageHeroTemplate.subtitle
+    .replace("{service}", service.name.toLowerCase())
+    .replace("{city}", city.name);
+
   const relatedServices = (await getServicesForCity(citySlug))
     .filter((s) => s.slug !== serviceSlug)
     .slice(0, 4);
@@ -64,10 +71,10 @@ export default async function ServiceCityPage({ params }: Props) {
           </div>
           <div className="text-5xl mb-4">{service.icon}</div>
           <h1 className="text-4xl sm:text-5xl font-black mb-4">
-            {service.name}s in {city.name}
+            {pageHeroTitle}
           </h1>
           <p className="text-gray-300 text-lg max-w-2xl mx-auto">
-            Total Serve connects you with vetted, trusted {service.name.toLowerCase()}s in {city.name} and the {city.region} area. Submit an enquiry and we&apos;ll match you to the right professional.
+            {pageHeroSubtitle}
           </p>
           <div className="mt-8">
             <Link href={`/enquiry?service=${serviceSlug}&city=${citySlug}`}>

@@ -5,6 +5,7 @@ import PageSection from "@/components/ui/PageSection";
 import Link from "next/link";
 import Button from "@/components/ui/Button";
 import type { Metadata } from "next";
+import { getPageHeroContent } from "@/lib/page-content";
 
 interface Props {
   params: Promise<{ citySlug: string }>;
@@ -29,6 +30,9 @@ export default async function CityPage({ params }: Props) {
   const { citySlug } = await params;
   const city = await getCityBySlug(citySlug);
   if (!city) notFound();
+  const pageHeroTemplate = await getPageHeroContent("cityDetail");
+  const pageHeroTitle = pageHeroTemplate.title.replace("{city}", city.name);
+  const pageHeroSubtitle = pageHeroTemplate.subtitle.replace("{city}", city.name);
 
   const availableServices = await getServicesForCity(citySlug);
 
@@ -37,10 +41,8 @@ export default async function CityPage({ params }: Props) {
       <div className="bg-gradient-to-br from-[#2E3192] to-[#1a1d6b] text-white py-14 px-4">
         <div className="max-w-3xl mx-auto text-center">
           <div className="text-5xl mb-4">📍</div>
-          <h1 className="text-4xl sm:text-5xl font-black mb-4">Tradespeople in {city.name}</h1>
-          <p className="text-gray-300 text-lg">
-            Browse the services Total Serve covers in {city.name}, {city.region}. Submit an enquiry and we&apos;ll match you with the right professional.
-          </p>
+          <h1 className="text-4xl sm:text-5xl font-black mb-4">{pageHeroTitle}</h1>
+          <p className="text-gray-300 text-lg">{pageHeroSubtitle}</p>
         </div>
       </div>
 

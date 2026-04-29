@@ -22,7 +22,7 @@ export default function PageSection({
 
   return (
     <section id={id} className={`${backgrounds[background]} ${className}`}>
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">{children}</div>
+      <div className="max-w-7xl mx-auto px-4 max-[390px]:px-3 sm:px-6 lg:px-8">{children}</div>
     </section>
   );
 }

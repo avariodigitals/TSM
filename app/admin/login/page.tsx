@@ -25,6 +25,16 @@ export default function AdminLoginPage() {
     setLoading(false);
 
     if (!result?.ok) {
+      if (result?.error === "Configuration") {
+        setErrorMessage("Server auth configuration is missing. Please set NEXTAUTH_SECRET and NEXTAUTH_URL.");
+        return;
+      }
+
+      if (result?.error && result.error !== "CredentialsSignin") {
+        setErrorMessage("Login service is temporarily unavailable. Please try again in a moment.");
+        return;
+      }
+
       setErrorMessage("Invalid login credentials.");
       return;
     }

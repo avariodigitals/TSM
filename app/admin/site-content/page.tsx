@@ -3,7 +3,7 @@ import PageContentManager from "@/components/admin/PageContentManager";
 
 export default async function AdminSiteContentPage() {
   const settings = await prisma.setting.findMany({
-    where: { key: { in: ["content.homeHero", "content.pageHeroes"] } },
+    where: { key: { in: ["content.homeHero", "content.homeSections", "content.pageHeroes"] } },
     orderBy: { key: "asc" },
   });
 

@@ -27,18 +27,32 @@ const customerSteps: Step[] = [
   },
 ];
 
-export default function HowItWorks() {
+type HowItWorksContent = {
+  badge: string;
+  title: string;
+  subtitle: string;
+};
+
+export default function HowItWorks({ content }: { content?: HowItWorksContent }) {
+  const heading = {
+    badge: content?.badge ?? "Simple Process",
+    title: content?.title ?? "How Total Serve Works",
+    subtitle:
+      content?.subtitle ??
+      "No directory browsing. No cold calls. We handle the matching so you get the right person for the job.",
+  };
+
   return (
     <div className="py-16 lg:py-24">
       <div className="text-center mb-14">
         <div className="inline-flex items-center gap-2 bg-[#00AEEF]/10 rounded-full px-4 py-2 mb-4">
-          <span className="text-[#00AEEF] text-sm font-semibold">Simple Process</span>
+          <span className="text-[#00AEEF] text-sm font-semibold">{heading.badge}</span>
         </div>
         <h2 className="text-3xl sm:text-4xl font-black text-[#231F20] mb-4">
-          How Total Serve Works
+          {heading.title}
         </h2>
         <p className="text-gray-500 text-lg max-w-2xl mx-auto">
-          No directory browsing. No cold calls. We handle the matching so you get the right person for the job.
+          {heading.subtitle}
         </p>
       </div>
 

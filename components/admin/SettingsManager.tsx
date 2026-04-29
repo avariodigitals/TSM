@@ -51,6 +51,11 @@ type SiteIntegrationsSettings = {
   customScripts: Array<{ id: string; enabled: boolean; script: string }>;
 };
 
+type NotificationEmailTemplates = {
+  artisanAssignment: { subject: string; body: string };
+  userAssignment: { subject: string; body: string };
+};
+
 const pageSize = 12;
 
 export default function SettingsManager({ settings }: { settings: SettingRow[] }) {
@@ -118,6 +123,44 @@ export default function SettingsManager({ settings }: { settings: SettingRow[] }
   );
   const [customScriptsDraft, setCustomScriptsDraft] = useState(
     JSON.stringify(integrationsDraft.customScripts, null, 2)
+  );
+
+  const [emailTemplatesDraft, setEmailTemplatesDraft] = useState<NotificationEmailTemplates>(
+    (settingsMap.get("notifications.emailTemplates") as NotificationEmailTemplates | undefined) ?? {
+      artisanAssignment: {
+        subject: "New Total Serve Assignment: {{serviceNeeded}} in {{city}}",
+        body: [
+          "Hello {{recipientName}},",
+          "",
+          "A new customer enquiry has been assigned to you by Total Serve.",
+          "Customer: {{leadName}}",
+          "Service: {{serviceNeeded}}",
+          "Location: {{city}}",
+          "Dispatcher notes: {{notes}}",
+          "",
+          "Please log in to your workflow and confirm availability.",
+          "",
+          "Total Serve Maintenance Ltd",
+        ].join("\n"),
+      },
+      userAssignment: {
+        subject: "Your Total Serve enquiry update: {{serviceNeeded}} in {{city}}",
+        body: [
+          "Hello {{recipientName}},",
+          "",
+          "Good news. We have assigned your enquiry to an artisan.",
+          "Service: {{serviceNeeded}}",
+          "Location: {{city}}",
+          "Assigned artisan: {{artisanName}}",
+          "Business: {{artisanBusinessName}}",
+          "Update notes: {{notes}}",
+          "",
+          "Our team will continue to coordinate the next steps.",
+          "",
+          "Total Serve Maintenance Ltd",
+        ].join("\n"),
+      },
+    }
   );
 
   const filteredSettings = useMemo(() => {
@@ -319,6 +362,81 @@ export default function SettingsManager({ settings }: { settings: SettingRow[] }
             disabled={isSaving}
           >
             Save Integrations
+          </button>
+        </div>
+
+        <div className="rounded-xl border border-gray-200 p-4 space-y-3">
+          <h2 className="text-lg font-black text-[#231F20]">Notification Email Samples</h2>
+          <p className="text-xs text-gray-500">{"Supported placeholders: {{recipientName}}, {{leadName}}, {{serviceNeeded}}, {{city}}, {{notes}}, {{artisanName}}, {{artisanBusinessName}}"}</p>
+
+          <div className="rounded-lg border border-gray-200 p-3 space-y-2">
+            <p className="text-sm font-semibold text-[#231F20]">Artisan Assignment Email</p>
+            <input
+              value={emailTemplatesDraft.artisanAssignment.subject}
+              onChange={(event) =>
+                setEmailTemplatesDraft((current) => ({
+                  ...current,
+                  artisanAssignment: { ...current.artisanAssignment, subject: event.target.value },
+                }))
+              }
+              placeholder="Subject"
+              className="w-full rounded-md border border-gray-300 px-3 py-2"
+            />
+            <textarea
+              value={emailTemplatesDraft.artisanAssignment.body}
+              onChange={(event) =>
+                setEmailTemplatesDraft((current) => ({
+                  ...current,
+                  artisanAssignment: { ...current.artisanAssignment, body: event.target.value },
+                }))
+              }
+              rows={8}
+              placeholder="Body"
+              className="w-full rounded-md border border-gray-300 px-3 py-2 font-mono text-xs"
+            />
+          </div>
+
+          <div className="rounded-lg border border-gray-200 p-3 space-y-2">
+            <p className="text-sm font-semibold text-[#231F20]">User Assignment Email</p>
+            <input
+              value={emailTemplatesDraft.userAssignment.subject}
+              onChange={(event) =>
+                setEmailTemplatesDraft((current) => ({
+                  ...current,
+                  userAssignment: { ...current.userAssignment, subject: event.target.value },
+                }))
+              }
+              placeholder="Subject"
+              className="w-full rounded-md border border-gray-300 px-3 py-2"
+            />
+            <textarea
+              value={emailTemplatesDraft.userAssignment.body}
+              onChange={(event) =>
+                setEmailTemplatesDraft((current) => ({
+                  ...current,
+                  userAssignment: { ...current.userAssignment, body: event.target.value },
+                }))
+              }
+              rows={8}
+              placeholder="Body"
+              className="w-full rounded-md border border-gray-300 px-3 py-2 font-mono text-xs"
+            />
+          </div>
+
+          <button
+            type="button"
+            onClick={() =>
+              void saveStructuredSetting(
+                "notifications.emailTemplates",
+                emailTemplatesDraft,
+                "Email subject/body templates for artisan and user assignment notifications",
+                "Notification email templates saved."
+              )
+            }
+            className="rounded-lg bg-[#2E3192] px-4 py-2 font-semibold text-white disabled:opacity-50"
+            disabled={isSaving}
+          >
+            Save Email Samples
           </button>
         </div>
       </div>

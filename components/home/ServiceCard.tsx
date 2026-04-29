@@ -14,13 +14,13 @@ export default function ServiceCard({ service, showLink = true, citySlug }: Serv
 
   return (
     <Link href={href} className="group block">
-      <div className="glass-card-soft rounded-2xl p-6 hover:-translate-y-1 hover:shadow-[0_24px_35px_-24px_rgba(0,44,90,0.5)] hover:border-[#00AEEF]/35 transition-all duration-300 h-full">
+      <div className="glass-card-soft rounded-2xl p-5 min-[520px]:p-6 min-h-[170px] hover:-translate-y-1 hover:shadow-[0_24px_35px_-24px_rgba(0,44,90,0.5)] hover:border-[#00AEEF]/35 transition-all duration-300 h-full">
         <div className="flex items-start gap-4">
           <div className="flex-shrink-0 w-12 h-12 rounded-xl bg-white/65 border border-white/70 flex items-center justify-center text-2xl group-hover:bg-[#00AEEF]/10 transition-colors">
             {service.icon}
           </div>
           <div className="flex-1 min-w-0">
-            <h3 className="font-bold text-[#231F20] text-base mb-1 group-hover:text-[#00AEEF] transition-colors">
+            <h3 className="font-bold text-[#231F20] text-base min-[520px]:text-lg mb-1 group-hover:text-[#00AEEF] transition-colors">
               {service.name}
             </h3>
             <p className="text-gray-500 text-sm leading-relaxed line-clamp-2">

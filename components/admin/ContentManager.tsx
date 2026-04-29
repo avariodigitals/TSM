@@ -15,6 +15,7 @@ type ContentRow = {
   slug: string;
   title: string;
   summary: string | null;
+  imageUrl: string | null;
   body: string;
   seoTitle: string | null;
   seoDescription: string | null;
@@ -33,7 +34,42 @@ export default function ContentManager({ entries }: { entries: ContentRow[] }) {
   const [query, setQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("ALL");
   const [page, setPage] = useState(1);
+  const [uploadingCreateImage, setUploadingCreateImage] = useState(false);
+  const [uploadingEntryId, setUploadingEntryId] = useState<string | null>(null);
   const { toast, showToast } = useAdminToast();
+
+  async function uploadImage(file: File) {
+    const formData = new FormData();
+    formData.set("file", file);
+
+    const response = await fetch("/api/admin/content/upload", {
+      method: "POST",
+      body: formData,
+    });
+
+    if (!response.ok) {
+      throw new Error(await getErrorMessage(response, "Image upload failed."));
+    }
+
+    const data = (await response.json()) as { ok: boolean; data?: { imageUrl?: string } };
+    if (!data.ok || !data.data?.imageUrl) {
+      throw new Error("Image upload failed.");
+    }
+
+    return data.data.imageUrl;
+  }
+
+  async function saveImageForSlug(slug: string, imageUrl: string) {
+    const response = await fetch("/api/admin/content-images", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ slug, imageUrl }),
+    });
+
+    if (!response.ok) {
+      throw new Error(await getErrorMessage(response, "Failed to save image URL."));
+    }
+  }
 
   const filteredEntries = useMemo(() => {
     return entries.filter((entry) => {
@@ -50,13 +86,46 @@ export default function ContentManager({ entries }: { entries: ContentRow[] }) {
   const currentPage = Math.min(page, totalPages);
   const paginatedEntries = filteredEntries.slice((currentPage - 1) * pageSize, currentPage * pageSize);
 
+  function deriveSummary(summary: string, body: string) {
+    const trimmedSummary = summary.trim();
+    if (trimmedSummary) {
+      return trimmedSummary;
+    }
+
+    const compactBody = body.replace(/[#*_`>-]/g, " ").replace(/\s+/g, " ").trim();
+    return compactBody.slice(0, 180);
+  }
+
   async function createEntry(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setError("");
     setIsCreating(true);
 
-    const form = new FormData(event.currentTarget);
+    const formElement = event.currentTarget;
+    const form = new FormData(formElement);
     const nextStatus = String(form.get("status") || ContentStatus.DRAFT) as ContentStatus;
+    const imageFile = form.get("coverImage");
+    const slug = String(form.get("slug") || "").trim();
+    const title = String(form.get("title") || "").trim();
+    const body = String(form.get("body") || "");
+    const summary = deriveSummary(String(form.get("summary") || ""), body);
+    const seoTitle = String(form.get("seoTitle") || "").trim();
+    const seoDescription = String(form.get("seoDescription") || "").trim() || summary;
+
+    let imageUrl = String(form.get("imageUrl") || "").trim();
+    if (imageFile instanceof File && imageFile.size > 0) {
+      try {
+        setUploadingCreateImage(true);
+        imageUrl = await uploadImage(imageFile);
+      } catch (uploadError) {
+        setUploadingCreateImage(false);
+        setIsCreating(false);
+        setError(uploadError instanceof Error ? uploadError.message : "Image upload failed.");
+        showToast("Image upload failed.", "error");
+        return;
+      }
+      setUploadingCreateImage(false);
+    }
 
     if (
       nextStatus === ContentStatus.PUBLISHED &&
@@ -70,12 +139,12 @@ export default function ContentManager({ entries }: { entries: ContentRow[] }) {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        slug: String(form.get("slug") || ""),
-        title: String(form.get("title") || ""),
-        summary: String(form.get("summary") || ""),
-        body: String(form.get("body") || ""),
-        seoTitle: String(form.get("seoTitle") || ""),
-        seoDescription: String(form.get("seoDescription") || ""),
+        slug,
+        title,
+        summary,
+        body,
+        seoTitle,
+        seoDescription,
         status: nextStatus,
       }),
     });
@@ -88,15 +157,25 @@ export default function ContentManager({ entries }: { entries: ContentRow[] }) {
       return;
     }
 
-    event.currentTarget.reset();
+    try {
+      await saveImageForSlug(slug, imageUrl);
+    } catch (saveImageError) {
+      setError(saveImageError instanceof Error ? saveImageError.message : "Failed to save image URL.");
+      showToast("Image URL save failed.", "error");
+      return;
+    }
+
+    formElement.reset();
     showToast("Content entry created successfully.");
     router.refresh();
   }
 
   async function updateEntry(payload: {
     contentId: string;
+    slug: string;
     title: string;
     summary: string;
+    imageUrl: string;
     body: string;
     seoTitle: string;
     seoDescription: string;
@@ -119,6 +198,14 @@ export default function ContentManager({ entries }: { entries: ContentRow[] }) {
       return;
     }
 
+    try {
+      await saveImageForSlug(payload.slug, payload.imageUrl);
+    } catch (saveImageError) {
+      setError(saveImageError instanceof Error ? saveImageError.message : "Failed to save image URL.");
+      showToast("Image URL save failed.", "error");
+      return;
+    }
+
     showToast("Content entry updated successfully.");
     router.refresh();
   }
@@ -132,6 +219,8 @@ export default function ContentManager({ entries }: { entries: ContentRow[] }) {
           <input name="slug" required placeholder="slug" className="rounded-md border border-gray-300 px-3 py-2" />
           <input name="title" required placeholder="title" className="rounded-md border border-gray-300 px-3 py-2" />
           <input name="summary" placeholder="summary" className="rounded-md border border-gray-300 px-3 py-2 md:col-span-2" />
+          <input name="imageUrl" placeholder="cover image URL" className="rounded-md border border-gray-300 px-3 py-2 md:col-span-2" />
+          <input type="file" name="coverImage" accept="image/*" className="rounded-md border border-gray-300 px-3 py-2 md:col-span-2" />
           <textarea
             name="body"
             required
@@ -153,7 +242,7 @@ export default function ContentManager({ entries }: { entries: ContentRow[] }) {
             ))}
           </select>
           <button type="submit" disabled={isCreating} className="rounded-lg bg-[#00AEEF] text-white px-4 py-2 font-semibold w-fit">
-            {isCreating ? "Creating..." : "Create Entry"}
+            {isCreating || uploadingCreateImage ? "Creating..." : "Create Entry"}
           </button>
         </form>
         {error ? <p className="text-sm text-red-600 mt-3">{error}</p> : null}
@@ -213,6 +302,50 @@ export default function ContentManager({ entries }: { entries: ContentRow[] }) {
                   defaultValue={entry.summary ?? ""}
                   className="rounded-md border border-gray-300 px-3 py-2 md:col-span-2"
                 />
+                <input
+                  id={`imageUrl-${entry.id}`}
+                  defaultValue={entry.imageUrl ?? ""}
+                  className="rounded-md border border-gray-300 px-3 py-2 md:col-span-2"
+                />
+                <div className="md:col-span-2 flex flex-wrap items-center gap-2">
+                  <input
+                    id={`imageFile-${entry.id}`}
+                    type="file"
+                    accept="image/*"
+                    className="rounded-md border border-gray-300 px-3 py-2"
+                  />
+                  <button
+                    type="button"
+                    disabled={uploadingEntryId === entry.id}
+                    className="rounded-lg border border-[#00AEEF] text-[#00AEEF] px-3 py-2 text-sm font-semibold disabled:opacity-50"
+                    onClick={async () => {
+                      const fileElement = document.getElementById(`imageFile-${entry.id}`) as HTMLInputElement | null;
+                      const imageUrlElement = document.getElementById(`imageUrl-${entry.id}`) as HTMLInputElement | null;
+                      const file = fileElement?.files?.[0];
+
+                      if (!file || !imageUrlElement) {
+                        setError("Select an image before uploading.");
+                        showToast("Select an image before uploading.", "error");
+                        return;
+                      }
+
+                      setError("");
+                      setUploadingEntryId(entry.id);
+                      try {
+                        const uploadedUrl = await uploadImage(file);
+                        imageUrlElement.value = uploadedUrl;
+                        showToast("Image uploaded successfully.");
+                      } catch (uploadError) {
+                        setError(uploadError instanceof Error ? uploadError.message : "Image upload failed.");
+                        showToast("Image upload failed.", "error");
+                      } finally {
+                        setUploadingEntryId(null);
+                      }
+                    }}
+                  >
+                    {uploadingEntryId === entry.id ? "Uploading..." : "Upload Image"}
+                  </button>
+                </div>
                 <textarea
                   id={`body-${entry.id}`}
                   defaultValue={entry.body}
@@ -245,6 +378,7 @@ export default function ContentManager({ entries }: { entries: ContentRow[] }) {
                       | HTMLInputElement
                       | null;
                     const bodyElement = document.getElementById(`body-${entry.id}`) as HTMLTextAreaElement | null;
+                    const imageUrlElement = document.getElementById(`imageUrl-${entry.id}`) as HTMLInputElement | null;
                     const seoTitleElement = document.getElementById(`seoTitle-${entry.id}`) as
                       | HTMLInputElement
                       | null;
@@ -256,6 +390,7 @@ export default function ContentManager({ entries }: { entries: ContentRow[] }) {
                       !titleElement ||
                       !statusElement ||
                       !summaryElement ||
+                      !imageUrlElement ||
                       !bodyElement ||
                       !seoTitleElement ||
                       !seoDescriptionElement
@@ -275,12 +410,14 @@ export default function ContentManager({ entries }: { entries: ContentRow[] }) {
 
                     void updateEntry({
                       contentId: entry.id,
+                      slug: entry.slug,
                       title: titleElement.value,
                       status: nextStatus,
-                      summary: summaryElement.value,
+                      summary: deriveSummary(summaryElement.value, bodyElement.value),
+                      imageUrl: imageUrlElement.value,
                       body: bodyElement.value,
                       seoTitle: seoTitleElement.value,
-                      seoDescription: seoDescriptionElement.value,
+                      seoDescription: seoDescriptionElement.value || deriveSummary(summaryElement.value, bodyElement.value),
                     });
                   }}
                 >

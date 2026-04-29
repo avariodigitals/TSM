@@ -1,7 +1,9 @@
-import { prisma } from "@/lib/prisma";
+import { getAdminDashboardStats } from "@/lib/admin-stats";
+
+export const dynamic = "force-dynamic";
 
 export default async function AdminDashboardPage() {
-  const [
+  const {
     totalLeads,
     openLeads,
     pendingArtisans,
@@ -10,16 +12,7 @@ export default async function AdminDashboardPage() {
     totalContent,
     totalSettings,
     totalUsers,
-  ] = await Promise.all([
-    prisma.lead.count(),
-    prisma.lead.count({ where: { status: { in: ["NEW", "REVIEWED", "ASSIGNED", "IN_PROGRESS"] } } }),
-    prisma.artisan.count({ where: { status: "PENDING" } }),
-    prisma.artisan.count({ where: { status: "APPROVED" } }),
-    prisma.artisanAssignment.count(),
-    prisma.contentEntry.count(),
-    prisma.setting.count(),
-    prisma.user.count(),
-  ]);
+  } = await getAdminDashboardStats();
 
   const cards = [
     { label: "Total Enquiries", value: totalLeads },

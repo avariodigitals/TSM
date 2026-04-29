@@ -4,6 +4,7 @@ import { UserRole } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { authOptions } from "@/lib/auth";
 import { hasPermission, Permission, defaultRolePermissions, permissions } from "@/lib/rbac";
+import { isDatabaseConnectivityError } from "@/lib/db-health";
 
 type RolePermissionMap = Record<UserRole, Permission[]>;
 
@@ -12,10 +13,17 @@ function isPermission(value: unknown): value is Permission {
 }
 
 async function getRolePermissionMap(): Promise<RolePermissionMap> {
-  const setting = await prisma.setting.findUnique({
-    where: { key: "rbac.rolePermissions" },
-    select: { value: true },
-  });
+  let setting: { value: unknown } | null = null;
+
+  try {
+    setting = await prisma.setting.findUnique({
+      where: { key: "rbac.rolePermissions" },
+      select: { value: true },
+    });
+  } catch {
+    // Fall back to defaults when DB is unavailable.
+    return defaultRolePermissions;
+  }
 
   if (!setting || typeof setting.value !== "object" || setting.value === null) {
     return defaultRolePermissions;
@@ -46,9 +54,24 @@ export async function requireAdminPermission(permission: Permission) {
     };
   }
 
-  const user = await prisma.user.findUnique({
-    where: { email: session.user.email },
-  });
+  let user;
+  try {
+    user = await prisma.user.findUnique({
+      where: { email: session.user.email },
+    });
+  } catch (error) {
+    if (isDatabaseConnectivityError(error)) {
+      return {
+        ok: false as const,
+        response: NextResponse.json(
+          { ok: false, message: "Database temporarily unavailable. Please retry shortly." },
+          { status: 503 }
+        ),
+      };
+    }
+
+    throw error;
+  }
 
   if (!user || !user.isActive) {
     return {

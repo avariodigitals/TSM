@@ -4,6 +4,7 @@ import PageSection from "@/components/ui/PageSection";
 import Link from "next/link";
 import Button from "@/components/ui/Button";
 import type { Metadata } from "next";
+import { getPageHeroContent } from "@/lib/page-content";
 
 interface Props {
   params: Promise<{ serviceSlug: string }>;
@@ -28,6 +29,9 @@ export default async function ServicePage({ params }: Props) {
   const { serviceSlug } = await params;
   const service = await getServiceBySlug(serviceSlug);
   if (!service) notFound();
+  const pageHeroTemplate = await getPageHeroContent("serviceDetail");
+  const pageHeroTitle = pageHeroTemplate.title.replace("{service}", service.name);
+  const pageHeroSubtitle = pageHeroTemplate.subtitle.replace("{service}", service.name.toLowerCase());
 
   const availableCities = await getCitiesForService(serviceSlug);
 
@@ -36,8 +40,8 @@ export default async function ServicePage({ params }: Props) {
       <div className="bg-gradient-to-br from-[#2E3192] to-[#1a1d6b] text-white py-14 px-4">
         <div className="max-w-3xl mx-auto text-center">
           <div className="text-6xl mb-4">{service.icon}</div>
-          <h1 className="text-4xl sm:text-5xl font-black mb-4">{service.name} Services</h1>
-          <p className="text-gray-300 text-lg">{service.shortDescription}</p>
+          <h1 className="text-4xl sm:text-5xl font-black mb-4">{pageHeroTitle}</h1>
+          <p className="text-gray-300 text-lg">{pageHeroSubtitle}</p>
         </div>
       </div>
 
