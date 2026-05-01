@@ -7,6 +7,8 @@ export const size = {
 
 export const contentType = "image/png";
 
+export const revalidate = 3600; // Revalidate every hour
+
 export default function TwitterImage() {
   return new ImageResponse(
     (

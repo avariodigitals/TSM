@@ -58,7 +58,7 @@ export default function AdminLoginPage() {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-[#00AEEF]"
-              placeholder="admin@totalserve.co.uk"
+              placeholder="admin@totalservemaintenance.com"
             />
           </div>
           <div>

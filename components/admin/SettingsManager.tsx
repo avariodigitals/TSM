@@ -124,9 +124,9 @@ export default function SettingsManager({ settings }: { settings: SettingRow[] }
   const [generalDraft, setGeneralDraft] = useState<SiteGeneralSettings>(
     (settingsMap.get("site.general") as SiteGeneralSettings | undefined) ?? {
       siteName: "Total Serve Maintenance Ltd",
-      supportEmail: "enquiries@totalserve.co.uk",
+      supportEmail: "enquiries@totalservemaintenance.com",
       supportPhone: "0800 123 4567",
-      siteUrl: "https://totalserve.co.uk",
+      siteUrl: "https://totalservemaintenance.com",
     }
   );
 
@@ -252,7 +252,7 @@ export default function SettingsManager({ settings }: { settings: SettingRow[] }
       introBody:
         "For general enquiries, media requests, partnerships or support — use the contact form or reach us directly via the details below.",
       details: [
-        { icon: "📧", label: "Email", value: "enquiries@totalserve.co.uk" },
+        { icon: "📧", label: "Email", value: "enquiries@totalservemaintenance.com" },
         { icon: "📞", label: "Phone", value: "0800 123 4567" },
         { icon: "📍", label: "Location", value: "United Kingdom" },
         { icon: "🕒", label: "Hours", value: "Mon–Fri: 8am–6pm\\nSat: 9am–2pm" },

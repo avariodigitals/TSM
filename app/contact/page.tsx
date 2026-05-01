@@ -29,7 +29,7 @@ const defaultContactContent: ContactPageContent = {
   introBody:
     "For general enquiries, media requests, partnerships or support — use the contact form or reach us directly via the details below.",
   details: [
-    { icon: "📧", label: "Email", value: "enquiries@totalserve.co.uk" },
+    { icon: "📧", label: "Email", value: "enquiries@totalservemaintenance.com" },
     { icon: "📞", label: "Phone", value: "0800 123 4567" },
     { icon: "📍", label: "Location", value: "United Kingdom" },
     { icon: "🕒", label: "Hours", value: "Mon–Fri: 8am–6pm\nSat: 9am–2pm" },

@@ -22,7 +22,7 @@ export const metadata: Metadata = {
   description:
     "Submit an enquiry for trusted electricians, plumbers, gas engineers, carpenters and more across the UK. Total Serve reviews your request and assigns the right professional.",
   keywords: ["tradespeople UK", "electrician", "plumber", "gas engineer", "maintenance", "Total Serve"],
-  metadataBase: new URL("https://totalserve.co.uk"),
+  metadataBase: new URL("https://totalservemaintenance.com"),
   icons: {
     icon: "/tml-logo.webp",
     shortcut: "/tml-logo.webp",
@@ -35,7 +35,7 @@ export const metadata: Metadata = {
     title: "Total Serve Maintenance Ltd | Trusted Tradespeople Across the UK",
     description:
       "Search by service and location, submit an enquiry, and Total Serve assigns the right vetted professional.",
-    url: "https://totalserve.co.uk",
+    url: "https://totalservemaintenance.com",
     siteName: "Total Serve Maintenance Ltd",
     locale: "en_GB",
     type: "website",
@@ -154,9 +154,9 @@ const defaultHeaderFooter: SiteHeaderFooterSettings = {
 
 const defaultGeneral: SiteGeneralSettings = {
   siteName: "Total Serve Maintenance Ltd",
-  supportEmail: "enquiries@totalserve.co.uk",
+  supportEmail: "enquiries@totalservemaintenance.com",
   supportPhone: "0800 123 4567",
-  siteUrl: "https://totalserve.co.uk",
+  siteUrl: "https://totalservemaintenance.com",
 };
 
 const defaultFooter: SiteFooterSettings = {

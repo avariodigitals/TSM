@@ -64,8 +64,8 @@ export default async function HomePage() {
     "@context": "https://schema.org",
     "@type": "Organization",
     name: "Total Serve Maintenance Ltd",
-    url: "https://totalserve.co.uk",
-    logo: "https://totalserve.co.uk/tml-logo.webp",
+    url: "https://totalservemaintenance.com",
+    logo: "https://totalservemaintenance.com/tml-logo.webp",
     areaServed: "United Kingdom",
     sameAs: [],
   };
@@ -74,10 +74,10 @@ export default async function HomePage() {
     "@context": "https://schema.org",
     "@type": "WebSite",
     name: "Total Serve Maintenance Ltd",
-    url: "https://totalserve.co.uk",
+    url: "https://totalservemaintenance.com",
     potentialAction: {
       "@type": "SearchAction",
-      target: "https://totalserve.co.uk/search?service={service}&city={city}",
+      target: "https://totalservemaintenance.com/search?service={service}&city={city}",
       "query-input": ["required name=service", "required name=city"],
     },
   };
