@@ -210,6 +210,16 @@ type SmtpSettings = {
   from: string;
 };
 
+const emailSenderName = "Total Serve Maintenance";
+
+function formatSender(from: string) {
+  const match = from.match(/<([^>]+)>/);
+  const address = (match?.[1] ?? from).trim();
+  const safeName = emailSenderName.replace(/["\\]/g, "");
+
+  return `"${safeName}" <${address}>`;
+}
+
 async function getSmtpConfig() {
   const configured = await getSettingValue<SmtpSettings>("site.smtp", {
     enabled: false,
@@ -334,7 +344,7 @@ async function sendAssignmentEmail({
     });
 
     await transporter.sendMail({
-      from: smtpConfig.from,
+      from: formatSender(smtpConfig.from),
       to: recipient,
       subject,
       text,
@@ -699,7 +709,7 @@ export async function sendNewUserCredentialsEmail({
 
   try {
     await transporter.sendMail({
-      from: smtpConfig.from,
+      from: formatSender(smtpConfig.from),
       to: email,
       subject,
       text,

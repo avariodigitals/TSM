@@ -32,12 +32,12 @@ export default async function AdminLayout({ children }: { children: React.ReactN
     redirect("/auth/admin-login");
   }
 
-  let user: { role: UserRole; permissionOverrides: unknown; isActive: boolean; email: string } | null = null;
+  let user: { fullName: string; role: UserRole; permissionOverrides: unknown; isActive: boolean; email: string } | null = null;
 
   try {
     user = await prisma.user.findUnique({
       where: { email: session.user.email ?? "" },
-      select: { role: true, permissionOverrides: true, isActive: true, email: true },
+      select: { fullName: true, role: true, permissionOverrides: true, isActive: true, email: true },
     });
   } catch (error) {
     if (isDatabaseConnectivityError(error)) {
@@ -77,7 +77,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
               Total Serve <span className="text-[#00AEEF]">Admin</span>
             </h2>
             <p className="mt-2 text-xs uppercase tracking-wide text-[#cdd8ff]">Signed in as</p>
-            <p className="text-sm font-semibold break-all">{session.user.name}</p>
+            <p className="text-sm font-semibold break-all">{user.fullName}</p>
           </div>
 
           <nav className="px-3 py-4 space-y-1">

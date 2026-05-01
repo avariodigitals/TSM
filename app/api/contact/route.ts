@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { prisma } from "@/lib/prisma";
 import { notifyContactOwner } from "@/lib/notifications";
 
 interface ContactPayload {
@@ -39,16 +40,32 @@ export async function POST(request: Request) {
       return NextResponse.json({ ok: false, message: "Please complete all required fields." }, { status: 400 });
     }
 
-    const result = await notifyContactOwner(payload);
+    const lead = await prisma.lead.create({
+      data: {
+        fullName: payload.name,
+        email: payload.email,
+        phone: "Not provided",
+        serviceNeeded: `Contact: ${payload.subject}`,
+        city: "Contact form",
+        postcode: "Not provided",
+        jobDescription: payload.message,
+        urgencyLevel: "standard",
+        preferredContact: "email",
+        notes: "Submitted through the Contact Us form.",
+      },
+    });
 
-    if (!result.ok) {
-      return NextResponse.json(
-        { ok: false, message: "Unable to send your message at this time." },
-        { status: 500 }
-      );
+    try {
+      const result = await notifyContactOwner(payload);
+
+      if (!result.ok) {
+        console.error("contact notification failed", { leadId: lead.id });
+      }
+    } catch (error) {
+      console.error("contact notification error", error);
     }
 
-    return NextResponse.json({ ok: true, message: "Your message has been sent." }, { status: 201 });
+    return NextResponse.json({ ok: true, id: lead.id, message: "Your message has been sent." }, { status: 201 });
   } catch {
     return NextResponse.json(
       { ok: false, message: "Unable to send your message at this time." },
