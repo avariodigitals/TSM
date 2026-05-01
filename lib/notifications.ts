@@ -635,3 +635,105 @@ export async function notifyContactOwner(input: ContactOwnerNotificationInput) {
     },
   });
 }
+
+export async function sendNewUserCredentialsEmail({
+  email,
+  fullName,
+  password,
+  role,
+  loginUrl,
+}: {
+  email: string;
+  fullName: string;
+  password: string;
+  role: string;
+  loginUrl: string;
+}): Promise<{ ok: boolean; mode: string }> {
+  const smtpConfig = await getSmtpConfig();
+
+  if (!smtpConfig) {
+    await prisma.notificationLog.create({
+      data: {
+        channel: "email",
+        recipient: email,
+        subject: "Your Admin Account Credentials",
+        payload: {
+          fullName,
+          role,
+          loginUrl,
+        },
+        status: "queued-no-smtp",
+      },
+    });
+    return { ok: true, mode: "dry-run" };
+  }
+
+  const subject = "Your Total Serve Admin Account Credentials";
+  const text = [
+    `Hello ${fullName},`,
+    "",
+    `Your admin account has been created with the role: ${role}`,
+    "",
+    "Login credentials:",
+    `Email: ${email}`,
+    `Password: ${password}`,
+    "",
+    `Login URL: ${loginUrl}`,
+    "",
+    "Important: Please change your password after your first login.",
+    "",
+    "If you did not request this account, please contact your administrator immediately.",
+    "",
+    "Total Serve Maintenance Ltd",
+  ].join("\n");
+
+  const transporter = nodemailer.createTransport({
+    host: smtpConfig.host,
+    port: smtpConfig.port,
+    secure: smtpConfig.port === 465,
+    auth: {
+      user: smtpConfig.user,
+      pass: smtpConfig.pass,
+    },
+  });
+
+  try {
+    await transporter.sendMail({
+      from: smtpConfig.from,
+      to: email,
+      subject,
+      text,
+    });
+
+    await prisma.notificationLog.create({
+      data: {
+        channel: "email",
+        recipient: email,
+        subject,
+        payload: {
+          fullName,
+          role,
+        },
+        status: "sent",
+      },
+    });
+
+    return { ok: true, mode: "smtp" };
+  } catch (error) {
+    await prisma.notificationLog.create({
+      data: {
+        channel: "email",
+        recipient: email,
+        subject,
+        payload: {
+          fullName,
+          role,
+        },
+        status: "failed",
+        error: error instanceof Error ? error.message : String(error),
+      },
+    });
+
+    return { ok: false, mode: "smtp" };
+  }
+}

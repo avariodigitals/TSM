@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { Fragment, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { UserRole } from "@prisma/client";
 import { permissions, type Permission } from "@/lib/rbac";
@@ -15,6 +15,7 @@ type UserRow = {
   id: string;
   fullName: string;
   email: string;
+  pendingEmail?: string | null;
   role: UserRole;
   isActive: boolean;
   permissionOverrides: string[] | null;
@@ -35,12 +36,14 @@ export default function UsersManager({
   const [isCreating, setIsCreating] = useState(false);
   const [pendingId, setPendingId] = useState<string | null>(null);
   const [passwordPendingId, setPasswordPendingId] = useState<string | null>(null);
+  const [expandedOverridesId, setExpandedOverridesId] = useState<string | null>(null);
   const [error, setError] = useState("");
   const [query, setQuery] = useState("");
   const [roleFilter, setRoleFilter] = useState("ALL");
   const [page, setPage] = useState(1);
   const [roleDraft, setRoleDraft] = useState<Record<UserRole, Permission[]>>(rolePermissions);
   const [isSavingRoles, setIsSavingRoles] = useState(false);
+  const [overridesDraft, setOverridesDraft] = useState<Record<string, Set<string>>>({});
   const { toast, showToast } = useAdminToast();
 
   const filteredUsers = useMemo(() => {
@@ -201,6 +204,58 @@ export default function UsersManager({
     });
   }
 
+  async function approvePendingEmail(userId: string, newEmail: string) {
+    if (!window.confirm(`Approve email change to ${newEmail}?`)) {
+      return;
+    }
+
+    setError("");
+    setPendingId(userId);
+
+    const response = await fetch("/api/admin/users/approve-email", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ userId, newEmail }),
+    });
+
+    setPendingId(null);
+
+    if (!response.ok) {
+      setError(await getErrorMessage(response, "Failed to approve email change."));
+      showToast("Email approval failed.", "error");
+      return;
+    }
+
+    showToast("Email change approved successfully.");
+    router.refresh();
+  }
+
+  async function rejectPendingEmail(userId: string) {
+    if (!window.confirm("Reject this email change request?")) {
+      return;
+    }
+
+    setError("");
+    setPendingId(userId);
+
+    const response = await fetch("/api/admin/users/reject-email", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ userId }),
+    });
+
+    setPendingId(null);
+
+    if (!response.ok) {
+      setError(await getErrorMessage(response, "Failed to reject email change."));
+      showToast("Email rejection failed.", "error");
+      return;
+    }
+
+    showToast("Email change request rejected.");
+    router.refresh();
+  }
+
   return (
     <div className="space-y-5">
       <AdminToast toast={toast} />
@@ -320,7 +375,8 @@ export default function UsersManager({
               {paginatedUsers.map((user) => {
                 const isPending = pendingId === user.id;
                 return (
-                  <tr key={user.id} className="border-t border-gray-100 align-top">
+                  <Fragment key={user.id}>
+                  <tr className="border-t border-gray-100 align-top">
                     <td className="p-3">{user.fullName}</td>
                     <td className="p-3">{user.email}</td>
                     <td className="p-3">
@@ -336,12 +392,74 @@ export default function UsersManager({
                       <input id={`active-${user.id}`} type="checkbox" defaultChecked={user.isActive} />
                     </td>
                     <td className="p-3">
-                      <input
-                        id={`overrides-${user.id}`}
-                        defaultValue={(user.permissionOverrides ?? []).join(",")}
-                        className="rounded-md border border-gray-300 px-2 py-1 w-64"
-                        placeholder="comma,separated,permissions"
-                      />
+                      <button
+                        type="button"
+                        onClick={() => setExpandedOverridesId(expandedOverridesId === user.id ? null : user.id)}
+                        className="text-sm text-[#00AEEF] underline hover:no-underline"
+                      >
+                        {(user.permissionOverrides ?? []).length === 0 ? "None" : `${(user.permissionOverrides ?? []).length} override(s)`}
+                      </button>
+                      {expandedOverridesId === user.id && (
+                        <div className="mt-2 bg-gray-50 rounded-md p-3 border border-gray-200 max-h-64 overflow-y-auto">
+                          <div className="text-xs font-semibold text-gray-700 mb-2">Select Permission Overrides:</div>
+                          <div className="space-y-1">
+                            {permissions.map((permission) => {
+                              const currentOverrides = overridesDraft[user.id] ?? new Set(user.permissionOverrides ?? []);
+                              const isChecked = currentOverrides.has(permission);
+                              return (
+                                <label key={permission} className="flex items-center gap-2 text-xs cursor-pointer hover:bg-white p-1 rounded">
+                                  <input
+                                    type="checkbox"
+                                    checked={isChecked}
+                                    onChange={(e) => {
+                                      const newSet = new Set(overridesDraft[user.id] ?? new Set(user.permissionOverrides ?? []));
+                                      if (e.target.checked) {
+                                        newSet.add(permission);
+                                      } else {
+                                        newSet.delete(permission);
+                                      }
+                                      setOverridesDraft((prev) => ({ ...prev, [user.id]: newSet }));
+                                    }}
+                                  />
+                                  <span className="text-gray-700">{permission}</span>
+                                </label>
+                              );
+                            })}
+                          </div>
+                          <div className="flex gap-2 mt-3">
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const newSet = overridesDraft[user.id] ?? new Set(user.permissionOverrides ?? []);
+                                void updateUser({
+                                  userId: user.id,
+                                  role: user.role,
+                                  isActive: user.isActive,
+                                  permissionOverrides: Array.from(newSet),
+                                });
+                                setExpandedOverridesId(null);
+                              }}
+                              className="text-xs rounded-lg bg-[#00AEEF] text-white px-2 py-1 font-semibold"
+                            >
+                              Save
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setOverridesDraft((prev) => {
+                                  const newDraft = { ...prev };
+                                  delete newDraft[user.id];
+                                  return newDraft;
+                                });
+                                setExpandedOverridesId(null);
+                              }}
+                              className="text-xs rounded-lg border border-gray-300 px-2 py-1 font-semibold text-gray-700 hover:bg-gray-50"
+                            >
+                              Cancel
+                            </button>
+                          </div>
+                        </div>
+                      )}
                     </td>
                     <td className="p-3">
                       <div className="flex gap-2">
@@ -375,16 +493,9 @@ export default function UsersManager({
                           onClick={() => {
                             const roleElement = document.getElementById(`role-${user.id}`) as HTMLSelectElement | null;
                             const activeElement = document.getElementById(`active-${user.id}`) as HTMLInputElement | null;
-                            const overridesElement = document.getElementById(`overrides-${user.id}`) as
-                              | HTMLInputElement
-                              | null;
-                            if (!roleElement || !activeElement || !overridesElement) return;
+                            if (!roleElement || !activeElement) return;
 
-                            const overrides = overridesElement.value
-                              .split(",")
-                              .map((value) => value.trim())
-                              .filter(Boolean);
-
+                            const overrides = Array.from(overridesDraft[user.id] ?? new Set(user.permissionOverrides ?? []));
                             const nextRole = roleElement.value as UserRole;
                             const nextActive = activeElement.checked;
 
@@ -414,6 +525,37 @@ export default function UsersManager({
                       </div>
                     </td>
                   </tr>
+                  {user.pendingEmail && (
+                    <tr className="border-t border-blue-200 bg-blue-50">
+                      <td colSpan={7} className="p-4">
+                        <div className="flex items-center justify-between gap-4">
+                          <div className="flex-1">
+                            <p className="text-sm text-blue-900 font-semibold">Pending email change</p>
+                            <p className="text-sm text-blue-700">{user.email} → {user.pendingEmail}</p>
+                          </div>
+                          <div className="flex gap-2">
+                            <button
+                              type="button"
+                              onClick={() => approvePendingEmail(user.id, user.pendingEmail!)}
+                              disabled={isPending}
+                              className="rounded-lg bg-green-600 text-white px-3 py-2 text-xs font-semibold hover:bg-green-700 disabled:opacity-50"
+                            >
+                              Approve
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => rejectPendingEmail(user.id)}
+                              disabled={isPending}
+                              className="rounded-lg bg-red-600 text-white px-3 py-2 text-xs font-semibold hover:bg-red-700 disabled:opacity-50"
+                            >
+                              Reject
+                            </button>
+                          </div>
+                        </div>
+                      </td>
+                    </tr>
+                  )}
+                  </Fragment>
                 );
               })}
             </tbody>

@@ -6,6 +6,7 @@ import { prisma } from "@/lib/prisma";
 import { requireAdminPermission } from "@/lib/admin-auth";
 import { logAudit } from "@/lib/audit";
 import { permissions } from "@/lib/rbac";
+import { sendNewUserCredentialsEmail } from "@/lib/notifications";
 
 const createUserSchema = z.object({
   fullName: z.string().min(2),
@@ -32,6 +33,7 @@ export async function GET() {
       id: true,
       fullName: true,
       email: true,
+      pendingEmail: true,
       role: true,
       isActive: true,
       permissionOverrides: true,
@@ -81,6 +83,18 @@ export async function POST(request: Request) {
       role: user.role,
       isActive: user.isActive,
     },
+  });
+
+  // Send credentials email to the new user
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://totalservemaintenance.com";
+  const loginUrl = `${siteUrl}/admin/login`;
+  
+  await sendNewUserCredentialsEmail({
+    email: user.email,
+    fullName: user.fullName,
+    password: parsed.data.password,
+    role: user.role,
+    loginUrl,
   });
 
   return NextResponse.json({ ok: true, data: user }, { status: 201 });

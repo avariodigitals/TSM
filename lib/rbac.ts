@@ -26,6 +26,8 @@ export const permissions = [
   "audit.clear",
   "catalog.view",
   "catalog.edit",
+  "pages.view",
+  "pages.edit",
 ] as const;
 
 export type Permission = (typeof permissions)[number];
@@ -48,6 +50,8 @@ export const defaultRolePermissions: Record<UserRole, Permission[]> = {
     "audit.export",
     "catalog.view",
     "catalog.edit",
+    "pages.view",
+    "pages.edit",
   ],
   DISPATCHER: [
     "leads.view",
@@ -57,7 +61,7 @@ export const defaultRolePermissions: Record<UserRole, Permission[]> = {
     "assignments.view",
     "assignments.edit",
   ],
-  EDITOR: ["content.view", "content.edit"],
+  EDITOR: ["content.view", "content.edit", "pages.view", "pages.edit"],
   VIEWER: [],
 };
 

@@ -77,7 +77,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
               Total Serve <span className="text-[#00AEEF]">Admin</span>
             </h2>
             <p className="mt-2 text-xs uppercase tracking-wide text-[#cdd8ff]">Signed in as</p>
-            <p className="text-sm font-semibold break-all">{session.user.email}</p>
+            <p className="text-sm font-semibold break-all">{session.user.name}</p>
           </div>
 
           <nav className="px-3 py-4 space-y-1">

@@ -52,9 +52,12 @@ model User {
   fullName            String
   email               String             @unique
   passwordHash        String
+  profilePicture      String?
+  pendingEmail        String?
   role                UserRole           @default(VIEWER)
   isActive            Boolean            @default(true)
   permissionOverrides Json?
+  lastPasswordChange  DateTime?
   createdAt           DateTime           @default(now())
   updatedAt           DateTime           @updatedAt
 
