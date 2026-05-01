@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { notifyArtisanRegistrationOwner, notifyArtisanRegistrationUser } from "@/lib/notifications";
 
 interface ArtisanRegistrationPayload {
   fullName: string;
@@ -60,6 +61,28 @@ export async function POST(request: Request) {
         consentGiven: json.consentGiven,
       },
     });
+
+    const artisanEmail = json.email.toLowerCase().trim();
+
+    try {
+      await notifyArtisanRegistrationOwner({
+        artisanName: json.fullName,
+        businessName: json.businessName,
+        artisanEmail,
+        artisanPhone: json.phone,
+        tradeCategory: json.tradeCategory,
+        citiesCovered: json.citiesCovered,
+        yearsExperience: json.yearsExperience,
+      });
+
+      await notifyArtisanRegistrationUser({
+        recipientEmail: artisanEmail,
+        recipientName: json.fullName,
+        tradeCategory: json.tradeCategory,
+      });
+    } catch (error) {
+      console.error("artisan registration notification error", error);
+    }
 
     return NextResponse.json(
       {

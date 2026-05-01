@@ -22,6 +22,43 @@ interface UserAssignmentNotificationInput {
   notes?: string | null;
 }
 
+interface EnquiryOwnerNotificationInput {
+  recipientEmail?: string;
+  leadName: string;
+  leadEmail: string;
+  leadPhone: string;
+  serviceNeeded: string;
+  city: string;
+  postcode: string;
+  urgencyLevel: string;
+  preferredContact: string;
+  jobDescription: string;
+}
+
+interface EnquiryUserNotificationInput {
+  recipientEmail: string;
+  recipientName: string;
+  serviceNeeded: string;
+  city: string;
+}
+
+interface ArtisanRegistrationOwnerNotificationInput {
+  recipientEmail?: string;
+  artisanName: string;
+  businessName: string;
+  artisanEmail: string;
+  artisanPhone: string;
+  tradeCategory: string;
+  citiesCovered: string[];
+  yearsExperience: string;
+}
+
+interface ArtisanRegistrationUserNotificationInput {
+  recipientEmail: string;
+  recipientName: string;
+  tradeCategory: string;
+}
+
 type AssignmentEmailTemplate = {
   subject: string;
   body: string;
@@ -30,6 +67,10 @@ type AssignmentEmailTemplate = {
 type NotificationEmailTemplates = {
   artisanAssignment: AssignmentEmailTemplate;
   userAssignment: AssignmentEmailTemplate;
+  enquiryOwner: AssignmentEmailTemplate;
+  enquiryUser: AssignmentEmailTemplate;
+  artisanRegistrationOwner: AssignmentEmailTemplate;
+  artisanRegistrationUser: AssignmentEmailTemplate;
 };
 
 const defaultNotificationEmailTemplates: NotificationEmailTemplates = {
@@ -66,6 +107,67 @@ const defaultNotificationEmailTemplates: NotificationEmailTemplates = {
       "Total Serve Maintenance Ltd",
     ].join("\n"),
   },
+  enquiryOwner: {
+    subject: "New Service Enquiry: {{serviceNeeded}} in {{city}}",
+    body: [
+      "A new service enquiry has been submitted.",
+      "",
+      "Name: {{leadName}}",
+      "Email: {{leadEmail}}",
+      "Phone: {{leadPhone}}",
+      "Service: {{serviceNeeded}}",
+      "City: {{city}}",
+      "Postcode: {{postcode}}",
+      "Urgency: {{urgencyLevel}}",
+      "Preferred contact: {{preferredContact}}",
+      "",
+      "Job description:",
+      "{{jobDescription}}",
+    ].join("\n"),
+  },
+  enquiryUser: {
+    subject: "We received your Total Serve enquiry",
+    body: [
+      "Hello {{recipientName}},",
+      "",
+      "Thanks for contacting Total Serve.",
+      "We have received your enquiry for {{serviceNeeded}} in {{city}} and our team will review it shortly.",
+      "",
+      "Total Serve Maintenance Ltd",
+    ].join("\n"),
+  },
+  artisanRegistrationOwner: {
+    subject: "New Artisan Registration: {{tradeCategory}}",
+    body: [
+      "A new artisan registration has been submitted.",
+      "",
+      "Name: {{artisanName}}",
+      "Business: {{businessName}}",
+      "Email: {{artisanEmail}}",
+      "Phone: {{artisanPhone}}",
+      "Trade: {{tradeCategory}}",
+      "Cities covered: {{citiesCovered}}",
+      "Years of experience: {{yearsExperience}}",
+    ].join("\n"),
+  },
+  artisanRegistrationUser: {
+    subject: "We received your artisan registration",
+    body: [
+      "Hello {{recipientName}},",
+      "",
+      "Thank you for registering as a Total Serve artisan in {{tradeCategory}}.",
+      "Our team will review your application and contact you with next steps.",
+      "",
+      "Total Serve Maintenance Ltd",
+    ].join("\n"),
+  },
+};
+
+type SiteGeneralSettings = {
+  siteName: string;
+  supportEmail: string;
+  supportPhone: string;
+  siteUrl: string;
 };
 
 function canUseSmtp() {
@@ -141,6 +243,22 @@ async function getEmailTemplates() {
     userAssignment: {
       ...defaultNotificationEmailTemplates.userAssignment,
       ...(configured.userAssignment ?? {}),
+    },
+    enquiryOwner: {
+      ...defaultNotificationEmailTemplates.enquiryOwner,
+      ...(configured.enquiryOwner ?? {}),
+    },
+    enquiryUser: {
+      ...defaultNotificationEmailTemplates.enquiryUser,
+      ...(configured.enquiryUser ?? {}),
+    },
+    artisanRegistrationOwner: {
+      ...defaultNotificationEmailTemplates.artisanRegistrationOwner,
+      ...(configured.artisanRegistrationOwner ?? {}),
+    },
+    artisanRegistrationUser: {
+      ...defaultNotificationEmailTemplates.artisanRegistrationUser,
+      ...(configured.artisanRegistrationUser ?? {}),
     },
   };
 }
@@ -230,6 +348,29 @@ async function sendAssignmentEmail({
   }
 }
 
+async function resolveOwnerRecipient(explicitRecipient?: string) {
+  if (explicitRecipient?.trim()) {
+    return explicitRecipient.trim().toLowerCase();
+  }
+
+  const general = await getSettingValue<SiteGeneralSettings>("site.general", {
+    siteName: "Total Serve Maintenance Ltd",
+    supportEmail: process.env.SMTP_FROM ?? "",
+    supportPhone: "",
+    siteUrl: "",
+  });
+
+  if (general.supportEmail?.trim()) {
+    return general.supportEmail.trim().toLowerCase();
+  }
+
+  if (process.env.SMTP_FROM?.trim()) {
+    return process.env.SMTP_FROM.trim().toLowerCase();
+  }
+
+  return "";
+}
+
 export async function notifyArtisanAssignment(input: AssignmentNotificationInput) {
   const templates = await getEmailTemplates();
   const variables = {
@@ -281,6 +422,148 @@ export async function notifyUserAssignment(input: UserAssignmentNotificationInpu
       serviceNeeded: input.serviceNeeded,
       city: input.city,
       artisanName: input.artisanName,
+    },
+  });
+}
+
+export async function notifyEnquiryOwner(input: EnquiryOwnerNotificationInput) {
+  const templates = await getEmailTemplates();
+  const ownerRecipient = await resolveOwnerRecipient(input.recipientEmail);
+  if (!ownerRecipient) {
+    await prisma.notificationLog.create({
+      data: {
+        channel: "email",
+        recipient: "owner",
+        subject: "New Service Enquiry",
+        payload: {
+          template: "enquiryOwner",
+          leadName: input.leadName,
+          serviceNeeded: input.serviceNeeded,
+          city: input.city,
+        },
+        status: "failed",
+        error: "Owner recipient email is not configured (site.general.supportEmail or SMTP_FROM)",
+      },
+    });
+    return { ok: false as const, mode: "smtp" as const };
+  }
+
+  const variables = {
+    leadName: input.leadName,
+    leadEmail: input.leadEmail,
+    leadPhone: input.leadPhone,
+    serviceNeeded: input.serviceNeeded,
+    city: input.city,
+    postcode: input.postcode,
+    urgencyLevel: input.urgencyLevel,
+    preferredContact: input.preferredContact,
+    jobDescription: input.jobDescription,
+  };
+
+  const subject = renderTemplate(templates.enquiryOwner.subject, variables).trim();
+  const text = renderTemplate(templates.enquiryOwner.body, variables).trim();
+
+  return sendAssignmentEmail({
+    recipient: ownerRecipient,
+    subject,
+    text,
+    payload: {
+      template: "enquiryOwner",
+      leadName: input.leadName,
+      serviceNeeded: input.serviceNeeded,
+      city: input.city,
+    },
+  });
+}
+
+export async function notifyEnquiryUser(input: EnquiryUserNotificationInput) {
+  const templates = await getEmailTemplates();
+  const variables = {
+    recipientName: input.recipientName,
+    serviceNeeded: input.serviceNeeded,
+    city: input.city,
+  };
+
+  const subject = renderTemplate(templates.enquiryUser.subject, variables).trim();
+  const text = renderTemplate(templates.enquiryUser.body, variables).trim();
+
+  return sendAssignmentEmail({
+    recipient: input.recipientEmail,
+    subject,
+    text,
+    payload: {
+      template: "enquiryUser",
+      recipientName: input.recipientName,
+      serviceNeeded: input.serviceNeeded,
+      city: input.city,
+    },
+  });
+}
+
+export async function notifyArtisanRegistrationOwner(input: ArtisanRegistrationOwnerNotificationInput) {
+  const templates = await getEmailTemplates();
+  const ownerRecipient = await resolveOwnerRecipient(input.recipientEmail);
+  if (!ownerRecipient) {
+    await prisma.notificationLog.create({
+      data: {
+        channel: "email",
+        recipient: "owner",
+        subject: "New Artisan Registration",
+        payload: {
+          template: "artisanRegistrationOwner",
+          artisanName: input.artisanName,
+          tradeCategory: input.tradeCategory,
+        },
+        status: "failed",
+        error: "Owner recipient email is not configured (site.general.supportEmail or SMTP_FROM)",
+      },
+    });
+    return { ok: false as const, mode: "smtp" as const };
+  }
+
+  const variables = {
+    artisanName: input.artisanName,
+    businessName: input.businessName,
+    artisanEmail: input.artisanEmail,
+    artisanPhone: input.artisanPhone,
+    tradeCategory: input.tradeCategory,
+    citiesCovered: input.citiesCovered.join(", "),
+    yearsExperience: input.yearsExperience,
+  };
+
+  const subject = renderTemplate(templates.artisanRegistrationOwner.subject, variables).trim();
+  const text = renderTemplate(templates.artisanRegistrationOwner.body, variables).trim();
+
+  return sendAssignmentEmail({
+    recipient: ownerRecipient,
+    subject,
+    text,
+    payload: {
+      template: "artisanRegistrationOwner",
+      artisanName: input.artisanName,
+      tradeCategory: input.tradeCategory,
+    },
+  });
+}
+
+export async function notifyArtisanRegistrationUser(input: ArtisanRegistrationUserNotificationInput) {
+  const templates = await getEmailTemplates();
+  const variables = {
+    recipientName: input.recipientName,
+    tradeCategory: input.tradeCategory,
+  };
+
+  const subject = renderTemplate(templates.artisanRegistrationUser.subject, variables).trim();
+  const text = renderTemplate(templates.artisanRegistrationUser.body, variables).trim();
+
+  return sendAssignmentEmail({
+    recipient: input.recipientEmail,
+    subject,
+    text,
+    payload: {
+      template: "artisanRegistrationUser",
+      recipientName: input.recipientName,
+      tradeCategory: input.tradeCategory,
     },
   });
 }

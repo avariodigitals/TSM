@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { notifyEnquiryOwner, notifyEnquiryUser } from "@/lib/notifications";
 
 interface EnquiryPayload {
   fullName: string;
@@ -56,6 +57,31 @@ export async function POST(request: Request) {
         preferredContact: json.preferredContact,
       },
     });
+
+    const leadEmail = json.email.toLowerCase().trim();
+
+    try {
+      await notifyEnquiryOwner({
+        leadName: json.fullName,
+        leadEmail,
+        leadPhone: json.phone,
+        serviceNeeded: json.serviceNeeded,
+        city: json.city,
+        postcode: json.postcode,
+        urgencyLevel: json.urgencyLevel,
+        preferredContact: json.preferredContact,
+        jobDescription: json.jobDescription,
+      });
+
+      await notifyEnquiryUser({
+        recipientEmail: leadEmail,
+        recipientName: json.fullName,
+        serviceNeeded: json.serviceNeeded,
+        city: json.city,
+      });
+    } catch (error) {
+      console.error("enquiry notification error", error);
+    }
 
     return NextResponse.json(
       {
