@@ -94,6 +94,10 @@ export default async function AdminLayout({ children }: { children: React.ReactN
           </nav>
 
           <div className="px-5 pt-6 mt-6 border-t border-white/10 space-y-3">
+            <Link href="/profile" className="flex items-center gap-2 text-sm font-semibold text-[#cdd8ff] hover:text-white">
+              <span>👤</span>
+              My Profile
+            </Link>
             <Link href="/" className="flex items-center gap-2 text-sm font-semibold text-[#cdd8ff] hover:text-white">
               <span>🌐</span>
               Open Website
