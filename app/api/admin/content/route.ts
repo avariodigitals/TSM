@@ -26,7 +26,7 @@ const contentUpdateSchema = z.object({
 });
 
 export async function GET() {
-  const auth = await requireAdminPermission("content.manage");
+  const auth = await requireAdminPermission("content.view");
   if (!auth.ok) return auth.response;
 
   const entries = await prisma.contentEntry.findMany({ orderBy: { updatedAt: "desc" } });
@@ -34,7 +34,7 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
-  const auth = await requireAdminPermission("content.manage");
+  const auth = await requireAdminPermission("content.edit");
   if (!auth.ok) return auth.response;
 
   const parsed = contentCreateSchema.safeParse(await request.json());
@@ -61,7 +61,7 @@ export async function POST(request: Request) {
 }
 
 export async function PATCH(request: Request) {
-  const auth = await requireAdminPermission("content.manage");
+  const auth = await requireAdminPermission("content.edit");
   if (!auth.ok) return auth.response;
 
   const parsed = contentUpdateSchema.safeParse(await request.json());

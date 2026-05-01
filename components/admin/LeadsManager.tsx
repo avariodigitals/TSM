@@ -14,12 +14,18 @@ type LeadRow = {
   id: string;
   fullName: string;
   email: string;
+  phone: string;
   serviceNeeded: string;
   city: string;
+  postcode: string;
+  jobDescription: string;
   urgencyLevel: string;
+  preferredContact: string;
   status: LeadStatus;
   notes: string | null;
   assignedArtisanId: string | null;
+  createdAt: string;
+  updatedAt: string;
   assignedArtisan?: {
     fullName: string;
     businessName: string;
@@ -46,6 +52,8 @@ export default function LeadsManager({ leads, artisans }: { leads: LeadRow[]; ar
   const [page, setPage] = useState(1);
   const [selectedLeadIds, setSelectedLeadIds] = useState<string[]>([]);
   const [bulkStatus, setBulkStatus] = useState<LeadStatus | "">("");
+  const [viewLead, setViewLead] = useState<LeadRow | null>(null);
+  const [deletePendingId, setDeletePendingId] = useState<string | null>(null);
   const { toast, showToast } = useAdminToast();
 
   const filteredLeads = useMemo(() => {
@@ -126,6 +134,36 @@ export default function LeadsManager({ leads, artisans }: { leads: LeadRow[]; ar
     setSelectedLeadIds([]);
     setBulkStatus("");
     showToast(`Updated ${selectedLeadIds.length} lead${selectedLeadIds.length === 1 ? "" : "s"}.`);
+    router.refresh();
+  }
+
+  async function deleteLead(lead: LeadRow) {
+    if (!window.confirm(`Delete lead for ${lead.fullName}? This cannot be undone.`)) {
+      return;
+    }
+
+    setError("");
+    setDeletePendingId(lead.id);
+
+    const response = await fetch("/api/admin/leads", {
+      method: "DELETE",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ leadId: lead.id }),
+    });
+
+    setDeletePendingId(null);
+
+    if (!response.ok) {
+      setError(await getErrorMessage(response, "Failed to delete lead."));
+      showToast("Lead delete failed.", "error");
+      return;
+    }
+
+    setSelectedLeadIds((current) => current.filter((id) => id !== lead.id));
+    if (viewLead?.id === lead.id) {
+      setViewLead(null);
+    }
+    showToast("Lead deleted successfully.");
     router.refresh();
   }
 
@@ -299,44 +337,61 @@ export default function LeadsManager({ leads, artisans }: { leads: LeadRow[]; ar
                     />
                   </td>
                   <td className="p-3">
-                    <button
-                      type="button"
-                      disabled={isPending}
-                      className="rounded-lg bg-[#00AEEF] text-white px-3 py-2 font-semibold disabled:opacity-50"
-                      onClick={() => {
-                        const statusElement = document.getElementById(`status-${lead.id}`) as HTMLSelectElement | null;
-                        const artisanElement = document.getElementById(`artisan-${lead.id}`) as
-                          | HTMLSelectElement
-                          | null;
-                        const notesElement = document.getElementById(`notes-${lead.id}`) as
-                          | HTMLTextAreaElement
-                          | null;
+                    <div className="flex flex-col gap-2">
+                      <button
+                        type="button"
+                        className="rounded-lg border border-gray-300 px-3 py-2 font-semibold text-[#231F20] hover:bg-[#F5F7FA]"
+                        onClick={() => setViewLead(lead)}
+                      >
+                        View
+                      </button>
+                      <button
+                        type="button"
+                        disabled={isPending}
+                        className="rounded-lg bg-[#00AEEF] text-white px-3 py-2 font-semibold disabled:opacity-50"
+                        onClick={() => {
+                          const statusElement = document.getElementById(`status-${lead.id}`) as HTMLSelectElement | null;
+                          const artisanElement = document.getElementById(`artisan-${lead.id}`) as
+                            | HTMLSelectElement
+                            | null;
+                          const notesElement = document.getElementById(`notes-${lead.id}`) as
+                            | HTMLTextAreaElement
+                            | null;
 
-                        if (!statusElement || !artisanElement || !notesElement) return;
+                          if (!statusElement || !artisanElement || !notesElement) return;
 
-                        const nextStatus = statusElement.value as LeadStatus;
-                        const nextArtisanId = artisanElement.value || null;
+                          const nextStatus = statusElement.value as LeadStatus;
+                          const nextArtisanId = artisanElement.value || null;
 
-                        if (
-                          (lead.assignedArtisanId !== nextArtisanId &&
-                            !window.confirm("Confirm artisan assignment change for this lead?")) ||
-                          (lead.status !== nextStatus &&
-                            (nextStatus === LeadStatus.CLOSED || nextStatus === LeadStatus.COMPLETED) &&
-                            !window.confirm(`Confirm status change to ${nextStatus}?`))
-                        ) {
-                          return;
-                        }
+                          if (
+                            (lead.assignedArtisanId !== nextArtisanId &&
+                              !window.confirm("Confirm artisan assignment change for this lead?")) ||
+                            (lead.status !== nextStatus &&
+                              (nextStatus === LeadStatus.CLOSED || nextStatus === LeadStatus.COMPLETED) &&
+                              !window.confirm(`Confirm status change to ${nextStatus}?`))
+                          ) {
+                            return;
+                          }
 
-                        void updateLead({
-                          leadId: lead.id,
-                          status: nextStatus,
-                          assignedArtisanId: nextArtisanId,
-                          notes: notesElement.value,
-                        });
-                      }}
-                    >
-                      {isPending ? "Saving..." : "Save"}
-                    </button>
+                          void updateLead({
+                            leadId: lead.id,
+                            status: nextStatus,
+                            assignedArtisanId: nextArtisanId,
+                            notes: notesElement.value,
+                          });
+                        }}
+                      >
+                        {isPending ? "Saving..." : "Save"}
+                      </button>
+                      <button
+                        type="button"
+                        disabled={deletePendingId === lead.id}
+                        className="rounded-lg border border-red-200 px-3 py-2 font-semibold text-red-600 hover:bg-red-50 disabled:opacity-50"
+                        onClick={() => void deleteLead(lead)}
+                      >
+                        {deletePendingId === lead.id ? "Deleting..." : "Delete"}
+                      </button>
+                    </div>
                   </td>
                 </tr>
               );
@@ -344,6 +399,54 @@ export default function LeadsManager({ leads, artisans }: { leads: LeadRow[]; ar
           </tbody>
         </table>
       </div>
+      {viewLead ? (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#231F20]/40 px-4 py-8">
+          <div className="w-full max-w-2xl rounded-2xl bg-white shadow-xl">
+            <div className="flex items-start justify-between gap-4 border-b border-gray-100 p-5">
+              <div>
+                <h2 className="text-xl font-black text-[#231F20]">{viewLead.fullName}</h2>
+                <p className="text-sm text-gray-500">{viewLead.serviceNeeded} in {viewLead.city}</p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setViewLead(null)}
+                className="rounded-lg border border-gray-300 px-3 py-2 text-sm font-semibold text-[#231F20]"
+              >
+                Close
+              </button>
+            </div>
+            <div className="max-h-[70vh] overflow-auto p-5">
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                {[
+                  ["Email", viewLead.email],
+                  ["Phone", viewLead.phone],
+                  ["Postcode", viewLead.postcode],
+                  ["Urgency", viewLead.urgencyLevel],
+                  ["Preferred Contact", viewLead.preferredContact],
+                  ["Status", viewLead.status],
+                  ["Created", new Date(viewLead.createdAt).toLocaleString()],
+                  ["Updated", new Date(viewLead.updatedAt).toLocaleString()],
+                ].map(([label, value]) => (
+                  <div key={label} className="rounded-xl bg-[#F5F7FA] p-4">
+                    <p className="text-xs font-bold uppercase tracking-wide text-gray-400">{label}</p>
+                    <p className="mt-1 text-sm font-semibold text-[#231F20] break-words">{value}</p>
+                  </div>
+                ))}
+              </div>
+              <div className="mt-4 rounded-xl bg-[#F5F7FA] p-4">
+                <p className="text-xs font-bold uppercase tracking-wide text-gray-400">Job Description</p>
+                <p className="mt-2 whitespace-pre-line text-sm leading-relaxed text-gray-600">{viewLead.jobDescription}</p>
+              </div>
+              {viewLead.notes ? (
+                <div className="mt-4 rounded-xl bg-[#F5F7FA] p-4">
+                  <p className="text-xs font-bold uppercase tracking-wide text-gray-400">Internal Notes</p>
+                  <p className="mt-2 whitespace-pre-line text-sm leading-relaxed text-gray-600">{viewLead.notes}</p>
+                </div>
+              ) : null}
+            </div>
+          </div>
+        </div>
+      ) : null}
     </div>
   );
 }

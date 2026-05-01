@@ -21,6 +21,7 @@ type ContactFormContent = {
 export default function ContactForm({ content }: { content: ContactFormContent }) {
   const [submitted, setSubmitted] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
   const [form, setForm] = useState({ name: "", email: "", subject: "", message: "" });
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -29,9 +30,27 @@ export default function ContactForm({ content }: { content: ContactFormContent }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setErrorMessage("");
     setLoading(true);
-    await new Promise((resolve) => setTimeout(resolve, 1000));
+
+    const response = await fetch("/api/contact", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(form),
+    });
+
     setLoading(false);
+
+    if (!response.ok) {
+      try {
+        const payload = (await response.json()) as { message?: string };
+        setErrorMessage(payload.message || "Unable to send your message at this time.");
+      } catch {
+        setErrorMessage("Unable to send your message at this time.");
+      }
+      return;
+    }
+
     setSubmitted(true);
   };
 
@@ -47,6 +66,11 @@ export default function ContactForm({ content }: { content: ContactFormContent }
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
+      {errorMessage ? (
+        <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-medium text-red-700">
+          {errorMessage}
+        </div>
+      ) : null}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div>
           <label className="block text-sm font-semibold text-[#231F20] mb-1.5">{content.formNameLabel} <span className="text-[#ED1C24]">*</span></label>

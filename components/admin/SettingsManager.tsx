@@ -56,6 +56,11 @@ type NotificationEmailTemplates = {
   userAssignment: { subject: string; body: string };
 };
 
+type MaintenanceSettings = {
+  notificationLogRetentionDays: number;
+  auditLogRetentionDays: number;
+};
+
 type SiteFooterSettings = {
   locationLabel: string;
   locationValue: string;
@@ -274,6 +279,14 @@ export default function SettingsManager({ settings }: { settings: SettingRow[] }
     JSON.stringify(contactPageDraft.details, null, 2)
   );
 
+  const [maintenanceDraft, setMaintenanceDraft] = useState<MaintenanceSettings>(
+    (settingsMap.get("site.maintenance") as MaintenanceSettings | undefined) ?? {
+      notificationLogRetentionDays: 90,
+      auditLogRetentionDays: 180,
+    }
+  );
+  const [isApplyingRetention, setIsApplyingRetention] = useState(false);
+
   const filteredSettings = useMemo(() => {
     return settings.filter((setting) => {
       return [setting.key, JSON.stringify(setting.value), setting.description ?? ""]
@@ -366,6 +379,33 @@ export default function SettingsManager({ settings }: { settings: SettingRow[] }
     }
 
     showToast(successMessage);
+    router.refresh();
+  }
+
+  async function applyRetentionNow() {
+    setError("");
+    setIsApplyingRetention(true);
+
+    const response = await fetch("/api/admin/maintenance", {
+      method: "POST",
+    });
+
+    setIsApplyingRetention(false);
+
+    if (!response.ok) {
+      setError(await getErrorMessage(response, "Failed to apply log retention."));
+      showToast("Log retention failed.", "error");
+      return;
+    }
+
+    const payload = (await response.json()) as {
+      notificationLogsDeleted?: number;
+      auditLogsDeleted?: number;
+    };
+
+    showToast(
+      `Retention applied. Removed ${payload.notificationLogsDeleted ?? 0} notification and ${payload.auditLogsDeleted ?? 0} audit log(s).`
+    );
     router.refresh();
   }
 
@@ -642,6 +682,76 @@ export default function SettingsManager({ settings }: { settings: SettingRow[] }
           >
             Save Email Samples
           </button>
+        </div>
+
+        <div className="rounded-xl border border-gray-200 p-4 space-y-3">
+          <h2 className="text-lg font-black text-[#231F20]">Database Maintenance</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            <label className="space-y-1 text-sm font-medium text-[#231F20]">
+              <span>Notification log retention days</span>
+              <input
+                type="number"
+                min="1"
+                value={maintenanceDraft.notificationLogRetentionDays}
+                onChange={(event) =>
+                  setMaintenanceDraft((current) => ({
+                    ...current,
+                    notificationLogRetentionDays: Number(event.target.value),
+                  }))
+                }
+                className="w-full rounded-md border border-gray-300 px-3 py-2"
+              />
+            </label>
+            <label className="space-y-1 text-sm font-medium text-[#231F20]">
+              <span>Audit log retention days</span>
+              <input
+                type="number"
+                min="1"
+                value={maintenanceDraft.auditLogRetentionDays}
+                onChange={(event) =>
+                  setMaintenanceDraft((current) => ({
+                    ...current,
+                    auditLogRetentionDays: Number(event.target.value),
+                  }))
+                }
+                className="w-full rounded-md border border-gray-300 px-3 py-2"
+              />
+            </label>
+          </div>
+          <p className="text-xs text-gray-500">
+            Retention cleanup only runs when applied here or through the maintenance API. Clear actions require a healthy database.
+          </p>
+          <div className="flex flex-wrap gap-3">
+            <button
+              type="button"
+              onClick={() =>
+                void saveStructuredSetting(
+                  "site.maintenance",
+                  maintenanceDraft,
+                  "Database log retention and maintenance controls",
+                  "Maintenance settings saved."
+                )
+              }
+              className="rounded-lg bg-[#2E3192] px-4 py-2 font-semibold text-white disabled:opacity-50"
+              disabled={isSaving}
+            >
+              Save Maintenance
+            </button>
+            <button
+              type="button"
+              onClick={() => void applyRetentionNow()}
+              className="rounded-lg border border-gray-300 px-4 py-2 font-semibold text-[#231F20] hover:bg-[#F5F7FA] disabled:opacity-50"
+              disabled={isApplyingRetention}
+            >
+              {isApplyingRetention ? "Applying..." : "Apply Retention Now"}
+            </button>
+            <a
+              href="/api/admin/database-backup"
+              className="rounded-lg border border-[#00AEEF] px-4 py-2 font-semibold text-[#00AEEF] hover:bg-[#00AEEF]/10"
+            >
+              Download Database Backup
+            </a>
+          </div>
         </div>
       </div>
 

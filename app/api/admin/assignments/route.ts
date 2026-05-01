@@ -19,7 +19,7 @@ const assignmentUpdateSchema = z.object({
 });
 
 export async function GET() {
-  const auth = await requireAdminPermission("assignments.manage");
+  const auth = await requireAdminPermission("assignments.view");
   if (!auth.ok) return auth.response;
 
   const assignments = await prisma.artisanAssignment.findMany({
@@ -37,7 +37,7 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
-  const auth = await requireAdminPermission("assignments.manage");
+  const auth = await requireAdminPermission("assignments.edit");
   if (!auth.ok) return auth.response;
 
   const parsed = assignmentCreateSchema.safeParse(await request.json());
@@ -114,7 +114,7 @@ export async function POST(request: Request) {
 }
 
 export async function PATCH(request: Request) {
-  const auth = await requireAdminPermission("assignments.manage");
+  const auth = await requireAdminPermission("assignments.edit");
   if (!auth.ok) return auth.response;
 
   const parsed = assignmentUpdateSchema.safeParse(await request.json());

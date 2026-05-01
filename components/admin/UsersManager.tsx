@@ -34,6 +34,7 @@ export default function UsersManager({
   const router = useRouter();
   const [isCreating, setIsCreating] = useState(false);
   const [pendingId, setPendingId] = useState<string | null>(null);
+  const [passwordPendingId, setPasswordPendingId] = useState<string | null>(null);
   const [error, setError] = useState("");
   const [query, setQuery] = useState("");
   const [roleFilter, setRoleFilter] = useState("ALL");
@@ -122,6 +123,41 @@ export default function UsersManager({
     router.refresh();
   }
 
+  async function resetPassword(userId: string, password: string) {
+    if (password.length < 8) {
+      showToast("Password must be at least 8 characters.", "error");
+      return;
+    }
+
+    if (!window.confirm("Reset password for this admin user?")) {
+      return;
+    }
+
+    setError("");
+    setPasswordPendingId(userId);
+
+    const response = await fetch("/api/admin/users", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ userId, password }),
+    });
+
+    setPasswordPendingId(null);
+
+    if (!response.ok) {
+      setError(await getErrorMessage(response, "Failed to reset password."));
+      showToast("Password reset failed.", "error");
+      return;
+    }
+
+    const passwordElement = document.getElementById(`password-${userId}`) as HTMLInputElement | null;
+    if (passwordElement) {
+      passwordElement.value = "";
+    }
+    showToast("Password reset successfully.");
+    router.refresh();
+  }
+
   async function saveRolePermissions() {
     setError("");
     setIsSavingRoles(true);
@@ -170,7 +206,7 @@ export default function UsersManager({
       <AdminToast toast={toast} />
       <div className="bg-white border border-gray-100 rounded-2xl shadow-sm p-5">
         <h1 className="text-2xl font-black text-[#231F20] mb-2">Role Permissions</h1>
-        <p className="text-sm text-gray-500 mb-4">Control what each role can see and manage across backend sections.</p>
+        <p className="text-sm text-gray-500 mb-4">Control module access separately from actions like edit, delete, backup, export, and clear logs.</p>
         <div className="overflow-auto">
           <table className="w-full text-sm">
             <thead>
@@ -269,13 +305,14 @@ export default function UsersManager({
                 <th className="p-3">Role</th>
                 <th className="p-3">Active</th>
                 <th className="p-3">Overrides</th>
+                <th className="p-3">Password</th>
                 <th className="p-3">Action</th>
               </tr>
             </thead>
             <tbody>
               {paginatedUsers.length === 0 ? (
                 <tr>
-                  <td className="p-6 text-center text-sm text-gray-500" colSpan={6}>
+                  <td className="p-6 text-center text-sm text-gray-500" colSpan={7}>
                     No users matched the current search or filter.
                   </td>
                 </tr>
@@ -307,49 +344,74 @@ export default function UsersManager({
                       />
                     </td>
                     <td className="p-3">
-                      <button
-                        type="button"
-                        disabled={isPending}
-                        className="rounded-lg bg-[#00AEEF] text-white px-3 py-2 font-semibold disabled:opacity-50"
-                        onClick={() => {
-                          const roleElement = document.getElementById(`role-${user.id}`) as HTMLSelectElement | null;
-                          const activeElement = document.getElementById(`active-${user.id}`) as HTMLInputElement | null;
-                          const overridesElement = document.getElementById(`overrides-${user.id}`) as
-                            | HTMLInputElement
-                            | null;
-                          if (!roleElement || !activeElement || !overridesElement) return;
+                      <div className="flex gap-2">
+                        <input
+                          id={`password-${user.id}`}
+                          type="password"
+                          minLength={8}
+                          placeholder="New password"
+                          className="w-44 rounded-md border border-gray-300 px-2 py-1"
+                        />
+                        <button
+                          type="button"
+                          disabled={passwordPendingId === user.id}
+                          className="rounded-lg border border-gray-300 px-3 py-2 font-semibold text-[#231F20] hover:bg-[#F5F7FA] disabled:opacity-50"
+                          onClick={() => {
+                            const passwordElement = document.getElementById(`password-${user.id}`) as HTMLInputElement | null;
+                            if (!passwordElement) return;
+                            void resetPassword(user.id, passwordElement.value);
+                          }}
+                        >
+                          {passwordPendingId === user.id ? "Resetting..." : "Reset"}
+                        </button>
+                      </div>
+                    </td>
+                    <td className="p-3">
+                      <div className="flex flex-col gap-2">
+                        <button
+                          type="button"
+                          disabled={isPending}
+                          className="rounded-lg bg-[#00AEEF] text-white px-3 py-2 font-semibold disabled:opacity-50"
+                          onClick={() => {
+                            const roleElement = document.getElementById(`role-${user.id}`) as HTMLSelectElement | null;
+                            const activeElement = document.getElementById(`active-${user.id}`) as HTMLInputElement | null;
+                            const overridesElement = document.getElementById(`overrides-${user.id}`) as
+                              | HTMLInputElement
+                              | null;
+                            if (!roleElement || !activeElement || !overridesElement) return;
 
-                          const overrides = overridesElement.value
-                            .split(",")
-                            .map((value) => value.trim())
-                            .filter(Boolean);
+                            const overrides = overridesElement.value
+                              .split(",")
+                              .map((value) => value.trim())
+                              .filter(Boolean);
 
-                          const nextRole = roleElement.value as UserRole;
-                          const nextActive = activeElement.checked;
+                            const nextRole = roleElement.value as UserRole;
+                            const nextActive = activeElement.checked;
 
-                          if (
-                            ((user.role !== nextRole &&
-                              !window.confirm(`Confirm role change from ${user.role} to ${nextRole}?`)) ||
-                              (user.isActive !== nextActive &&
-                                !window.confirm(
-                                  nextActive
-                                    ? "Reactivate this admin user?"
-                                    : "Deactivate this admin user and revoke access?"
-                                )))
-                          ) {
-                            return;
-                          }
+                            if (
+                              ((user.role !== nextRole &&
+                                !window.confirm(`Confirm role change from ${user.role} to ${nextRole}?`)) ||
+                                (user.isActive !== nextActive &&
+                                  !window.confirm(
+                                    nextActive
+                                      ? "Reactivate this admin user?"
+                                      : "Deactivate this admin user and revoke access?"
+                                  )))
+                            ) {
+                              return;
+                            }
 
-                          void updateUser({
-                            userId: user.id,
-                            role: nextRole,
-                            isActive: nextActive,
-                            permissionOverrides: overrides,
-                          });
-                        }}
-                      >
-                        {isPending ? "Saving..." : "Save"}
-                      </button>
+                            void updateUser({
+                              userId: user.id,
+                              role: nextRole,
+                              isActive: nextActive,
+                              permissionOverrides: overrides,
+                            });
+                          }}
+                        >
+                          {isPending ? "Saving..." : "Save"}
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 );

@@ -16,7 +16,7 @@ const leadUpdateSchema = z.object({
 });
 
 export async function GET() {
-  const auth = await requireAdminPermission("leads.manage");
+  const auth = await requireAdminPermission("leads.view");
   if (!auth.ok) return auth.response;
 
   const leads = await prisma.lead.findMany({
@@ -37,7 +37,7 @@ export async function GET() {
 }
 
 export async function PATCH(request: Request) {
-  const auth = await requireAdminPermission("leads.manage");
+  const auth = await requireAdminPermission("leads.edit");
   if (!auth.ok) return auth.response;
 
   const parsed = leadUpdateSchema.safeParse(await request.json());
@@ -83,4 +83,32 @@ export async function PATCH(request: Request) {
   );
 
   return NextResponse.json({ ok: true, data: leadIds.length === 1 ? leads[0] : leads });
+}
+
+export async function DELETE(request: Request) {
+  const auth = await requireAdminPermission("leads.delete");
+  if (!auth.ok) return auth.response;
+
+  const parsed = z.object({ leadId: z.string().min(1) }).safeParse(await request.json());
+  if (!parsed.success) {
+    return NextResponse.json({ ok: false, message: "Invalid payload." }, { status: 400 });
+  }
+
+  const before = await prisma.lead.findUnique({ where: { id: parsed.data.leadId } });
+  if (!before) {
+    return NextResponse.json({ ok: false, message: "Lead not found." }, { status: 404 });
+  }
+
+  await prisma.lead.delete({ where: { id: parsed.data.leadId } });
+
+  await logAudit({
+    actorId: auth.user.id,
+    action: "lead.deleted",
+    targetType: "lead",
+    targetId: parsed.data.leadId,
+    before,
+    after: null,
+  });
+
+  return NextResponse.json({ ok: true });
 }

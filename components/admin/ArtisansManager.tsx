@@ -14,11 +14,19 @@ type ArtisanRow = {
   id: string;
   fullName: string;
   businessName: string;
+  email: string;
+  phone: string;
   tradeCategory: string;
+  citiesCovered: unknown;
   yearsExperience: string;
+  certifications: string;
+  profileDescription: string;
+  consentGiven: boolean;
   status: ArtisanStatus;
   internalNotes: string | null;
+  approvedAt: string | null;
   createdAt: string;
+  updatedAt: string;
 };
 
 const statusOptions = Object.values(ArtisanStatus);
@@ -34,6 +42,8 @@ export default function ArtisansManager({ artisans }: { artisans: ArtisanRow[] }
   const [page, setPage] = useState(1);
   const [selectedArtisanIds, setSelectedArtisanIds] = useState<string[]>([]);
   const [bulkStatus, setBulkStatus] = useState<ArtisanStatus | "">("");
+  const [viewArtisan, setViewArtisan] = useState<ArtisanRow | null>(null);
+  const [deletePendingId, setDeletePendingId] = useState<string | null>(null);
   const { toast, showToast } = useAdminToast();
 
   const filteredArtisans = useMemo(() => {
@@ -109,6 +119,36 @@ export default function ArtisansManager({ artisans }: { artisans: ArtisanRow[] }
     router.refresh();
   }
 
+  async function deleteArtisan(artisan: ArtisanRow) {
+    if (!window.confirm(`Delete artisan registration for ${artisan.fullName}? This cannot be undone.`)) {
+      return;
+    }
+
+    setError("");
+    setDeletePendingId(artisan.id);
+
+    const response = await fetch("/api/admin/artisans", {
+      method: "DELETE",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ artisanId: artisan.id }),
+    });
+
+    setDeletePendingId(null);
+
+    if (!response.ok) {
+      setError(await getErrorMessage(response, "Failed to delete artisan."));
+      showToast("Artisan delete failed.", "error");
+      return;
+    }
+
+    setSelectedArtisanIds((current) => current.filter((id) => id !== artisan.id));
+    if (viewArtisan?.id === artisan.id) {
+      setViewArtisan(null);
+    }
+    showToast("Artisan deleted successfully.");
+    router.refresh();
+  }
+
   function toggleArtisanSelection(artisanId: string, checked: boolean) {
     setSelectedArtisanIds((current) => {
       if (checked) {
@@ -129,6 +169,14 @@ export default function ArtisansManager({ artisans }: { artisans: ArtisanRow[] }
 
       return current.filter((id) => !visibleIds.includes(id));
     });
+  }
+
+  function formatCities(citiesCovered: unknown) {
+    if (Array.isArray(citiesCovered)) {
+      return citiesCovered.filter((city) => typeof city === "string").join(", ");
+    }
+
+    return "";
   }
 
   return (
@@ -259,40 +307,57 @@ export default function ArtisansManager({ artisans }: { artisans: ArtisanRow[] }
                     />
                   </td>
                   <td className="p-3">
-                    <button
-                      type="button"
-                      disabled={isPending}
-                      className="rounded-lg bg-[#00AEEF] text-white px-3 py-2 font-semibold disabled:opacity-50"
-                      onClick={() => {
-                        const statusElement = document.getElementById(`status-${artisan.id}`) as
-                          | HTMLSelectElement
-                          | null;
-                        const notesElement = document.getElementById(`notes-${artisan.id}`) as
-                          | HTMLTextAreaElement
-                          | null;
-                        if (!statusElement || !notesElement) return;
+                    <div className="flex flex-col gap-2">
+                      <button
+                        type="button"
+                        className="rounded-lg border border-gray-300 px-3 py-2 font-semibold text-[#231F20] hover:bg-[#F5F7FA]"
+                        onClick={() => setViewArtisan(artisan)}
+                      >
+                        View
+                      </button>
+                      <button
+                        type="button"
+                        disabled={isPending}
+                        className="rounded-lg bg-[#00AEEF] text-white px-3 py-2 font-semibold disabled:opacity-50"
+                        onClick={() => {
+                          const statusElement = document.getElementById(`status-${artisan.id}`) as
+                            | HTMLSelectElement
+                            | null;
+                          const notesElement = document.getElementById(`notes-${artisan.id}`) as
+                            | HTMLTextAreaElement
+                            | null;
+                          if (!statusElement || !notesElement) return;
 
-                        const nextStatus = statusElement.value as ArtisanStatus;
+                          const nextStatus = statusElement.value as ArtisanStatus;
 
-                        if (
-                          artisan.status !== nextStatus &&
-                          (nextStatus === ArtisanStatus.APPROVED ||
-                            nextStatus === ArtisanStatus.SUSPENDED ||
-                            nextStatus === ArtisanStatus.REJECTED) &&
-                          !window.confirm(`Confirm artisan status change to ${nextStatus}?`)
-                        ) {
-                          return;
-                        }
+                          if (
+                            artisan.status !== nextStatus &&
+                            (nextStatus === ArtisanStatus.APPROVED ||
+                              nextStatus === ArtisanStatus.SUSPENDED ||
+                              nextStatus === ArtisanStatus.REJECTED) &&
+                            !window.confirm(`Confirm artisan status change to ${nextStatus}?`)
+                          ) {
+                            return;
+                          }
 
-                        void updateArtisan({
-                          artisanId: artisan.id,
-                          status: nextStatus,
-                          internalNotes: notesElement.value,
-                        });
-                      }}
-                    >
-                      {isPending ? "Saving..." : "Save"}
-                    </button>
+                          void updateArtisan({
+                            artisanId: artisan.id,
+                            status: nextStatus,
+                            internalNotes: notesElement.value,
+                          });
+                        }}
+                      >
+                        {isPending ? "Saving..." : "Save"}
+                      </button>
+                      <button
+                        type="button"
+                        disabled={deletePendingId === artisan.id}
+                        className="rounded-lg border border-red-200 px-3 py-2 font-semibold text-red-600 hover:bg-red-50 disabled:opacity-50"
+                        onClick={() => void deleteArtisan(artisan)}
+                      >
+                        {deletePendingId === artisan.id ? "Deleting..." : "Delete"}
+                      </button>
+                    </div>
                   </td>
                 </tr>
               );
@@ -300,6 +365,58 @@ export default function ArtisansManager({ artisans }: { artisans: ArtisanRow[] }
           </tbody>
         </table>
       </div>
+      {viewArtisan ? (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#231F20]/40 px-4 py-8">
+          <div className="w-full max-w-2xl rounded-2xl bg-white shadow-xl">
+            <div className="flex items-start justify-between gap-4 border-b border-gray-100 p-5">
+              <div>
+                <h2 className="text-xl font-black text-[#231F20]">{viewArtisan.fullName}</h2>
+                <p className="text-sm text-gray-500">{viewArtisan.businessName} · {viewArtisan.tradeCategory}</p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setViewArtisan(null)}
+                className="rounded-lg border border-gray-300 px-3 py-2 text-sm font-semibold text-[#231F20]"
+              >
+                Close
+              </button>
+            </div>
+            <div className="max-h-[70vh] overflow-auto p-5">
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                {[
+                  ["Email", viewArtisan.email],
+                  ["Phone", viewArtisan.phone],
+                  ["Experience", viewArtisan.yearsExperience],
+                  ["Status", viewArtisan.status],
+                  ["Cities Covered", formatCities(viewArtisan.citiesCovered)],
+                  ["Consent Given", viewArtisan.consentGiven ? "Yes" : "No"],
+                  ["Created", new Date(viewArtisan.createdAt).toLocaleString()],
+                  ["Approved", viewArtisan.approvedAt ? new Date(viewArtisan.approvedAt).toLocaleString() : "Not approved"],
+                ].map(([label, value]) => (
+                  <div key={label} className="rounded-xl bg-[#F5F7FA] p-4">
+                    <p className="text-xs font-bold uppercase tracking-wide text-gray-400">{label}</p>
+                    <p className="mt-1 text-sm font-semibold text-[#231F20] break-words">{value}</p>
+                  </div>
+                ))}
+              </div>
+              <div className="mt-4 rounded-xl bg-[#F5F7FA] p-4">
+                <p className="text-xs font-bold uppercase tracking-wide text-gray-400">Certifications</p>
+                <p className="mt-2 whitespace-pre-line text-sm leading-relaxed text-gray-600">{viewArtisan.certifications}</p>
+              </div>
+              <div className="mt-4 rounded-xl bg-[#F5F7FA] p-4">
+                <p className="text-xs font-bold uppercase tracking-wide text-gray-400">Profile Description</p>
+                <p className="mt-2 whitespace-pre-line text-sm leading-relaxed text-gray-600">{viewArtisan.profileDescription}</p>
+              </div>
+              {viewArtisan.internalNotes ? (
+                <div className="mt-4 rounded-xl bg-[#F5F7FA] p-4">
+                  <p className="text-xs font-bold uppercase tracking-wide text-gray-400">Internal Notes</p>
+                  <p className="mt-2 whitespace-pre-line text-sm leading-relaxed text-gray-600">{viewArtisan.internalNotes}</p>
+                </div>
+              ) : null}
+            </div>
+          </div>
+        </div>
+      ) : null}
     </div>
   );
 }

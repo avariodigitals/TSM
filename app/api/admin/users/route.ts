@@ -5,6 +5,7 @@ import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { requireAdminPermission } from "@/lib/admin-auth";
 import { logAudit } from "@/lib/audit";
+import { permissions } from "@/lib/rbac";
 
 const createUserSchema = z.object({
   fullName: z.string().min(2),
@@ -18,10 +19,11 @@ const updateUserSchema = z.object({
   role: z.nativeEnum(UserRole).optional(),
   isActive: z.boolean().optional(),
   permissionOverrides: z.array(z.string()).optional(),
+  password: z.string().min(8).optional(),
 });
 
 export async function GET() {
-  const auth = await requireAdminPermission("users.manage");
+  const auth = await requireAdminPermission("users.view");
   if (!auth.ok) return auth.response;
 
   const users = await prisma.user.findMany({
@@ -42,7 +44,7 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
-  const auth = await requireAdminPermission("users.manage");
+  const auth = await requireAdminPermission("users.create");
   if (!auth.ok) return auth.response;
 
   const parsed = createUserSchema.safeParse(await request.json());
@@ -85,22 +87,29 @@ export async function POST(request: Request) {
 }
 
 export async function PATCH(request: Request) {
-  const auth = await requireAdminPermission("users.manage");
-  if (!auth.ok) return auth.response;
-
-  const parsed = updateUserSchema.safeParse(await request.json());
+  const body = await request.json();
+  const parsed = updateUserSchema.safeParse(body);
   if (!parsed.success) {
     return NextResponse.json({ ok: false, message: "Invalid payload." }, { status: 400 });
   }
 
+  const isPasswordReset = Boolean(parsed.data.password);
+  const auth = await requireAdminPermission(isPasswordReset ? "users.resetPassword" : "users.edit");
+  if (!auth.ok) return auth.response;
+
   const before = await prisma.user.findUnique({ where: { id: parsed.data.userId } });
+  const passwordHash = parsed.data.password ? await hash(parsed.data.password, 12) : undefined;
+  const permissionOverrides = parsed.data.permissionOverrides?.filter((permission) =>
+    permissions.includes(permission as never)
+  );
 
   const user = await prisma.user.update({
     where: { id: parsed.data.userId },
     data: {
       role: parsed.data.role,
       isActive: parsed.data.isActive,
-      permissionOverrides: parsed.data.permissionOverrides,
+      permissionOverrides,
+      passwordHash,
     },
     select: {
       id: true,
@@ -115,7 +124,7 @@ export async function PATCH(request: Request) {
 
   await logAudit({
     actorId: auth.user.id,
-    action: "user.updated",
+    action: isPasswordReset ? "user.password_reset" : "user.updated",
     targetType: "user",
     targetId: user.id,
     before: before

@@ -94,6 +94,18 @@ const defaultPageHeroes: Record<string, PageHeroContent> = {
     title: "Total Serve Blog",
     subtitle: "Practical maintenance advice, trade insights, and updates from the Total Serve team.",
   },
+  privacy: {
+    title: "Privacy Policy",
+    subtitle: "How Total Serve handles personal information when you use our website and services.",
+  },
+  terms: {
+    title: "Terms of Use",
+    subtitle: "The terms that apply when you access Total Serve Maintenance Ltd online services.",
+  },
+  cookies: {
+    title: "Cookie Policy",
+    subtitle: "How cookies and similar technologies may be used on the Total Serve website.",
+  },
   enquiry: {
     title: "Submit an Enquiry",
     subtitle:

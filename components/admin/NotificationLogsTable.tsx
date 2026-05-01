@@ -1,7 +1,13 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { AdminTableControls } from "@/components/admin/AdminClientHelpers";
+import { useRouter } from "next/navigation";
+import {
+  AdminTableControls,
+  AdminToast,
+  getErrorMessage,
+  useAdminToast,
+} from "@/components/admin/AdminClientHelpers";
 
 type NotificationLogRow = {
   id: string;
@@ -17,9 +23,13 @@ type NotificationLogRow = {
 const pageSize = 20;
 
 export default function NotificationLogsTable({ logs }: { logs: NotificationLogRow[] }) {
+  const router = useRouter();
   const [query, setQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("ALL");
   const [page, setPage] = useState(1);
+  const [isClearing, setIsClearing] = useState(false);
+  const [error, setError] = useState("");
+  const { toast, showToast } = useAdminToast();
 
   const statuses = useMemo(() => {
     return Array.from(new Set(logs.map((log) => log.status))).sort();
@@ -47,10 +57,44 @@ export default function NotificationLogsTable({ logs }: { logs: NotificationLogR
   const currentPage = Math.min(page, totalPages);
   const paginatedLogs = filteredLogs.slice((currentPage - 1) * pageSize, currentPage * pageSize);
 
+  async function clearLogs() {
+    if (!window.confirm("Clear all notification delivery logs from the database? This cannot be undone.")) {
+      return;
+    }
+
+    setError("");
+    setIsClearing(true);
+
+    const response = await fetch("/api/admin/notifications", { method: "DELETE" });
+
+    setIsClearing(false);
+
+    if (!response.ok) {
+      setError(await getErrorMessage(response, "Failed to clear notification logs."));
+      showToast("Notification log clear failed.", "error");
+      return;
+    }
+
+    showToast("Notification logs cleared.");
+    router.refresh();
+  }
+
   return (
     <div className="bg-white border border-gray-100 rounded-2xl shadow-sm overflow-hidden">
+      <AdminToast toast={toast} />
       <div className="p-5 border-b border-gray-100">
-        <h1 className="text-2xl font-black text-[#231F20]">Notification Delivery</h1>
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <h1 className="text-2xl font-black text-[#231F20]">Notification Delivery</h1>
+          <button
+            type="button"
+            onClick={() => void clearLogs()}
+            disabled={isClearing || logs.length === 0}
+            className="rounded-lg border border-red-200 px-4 py-2 text-sm font-semibold text-red-600 hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            {isClearing ? "Clearing..." : "Clear Logs"}
+          </button>
+        </div>
+        {error ? <p className="mt-2 text-sm text-red-600">{error}</p> : null}
         <div className="mt-4">
           <AdminTableControls
             query={query}

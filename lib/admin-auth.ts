@@ -30,17 +30,22 @@ async function getRolePermissionMap(): Promise<RolePermissionMap> {
   }
 
   const raw = setting.value as Record<string, unknown>;
+  const permissionsFor = (role: UserRole) => {
+    const value = raw[role];
+    if (!Array.isArray(value)) {
+      return defaultRolePermissions[role];
+    }
+
+    const filtered = value.filter(isPermission);
+    return filtered.length > 0 ? filtered : defaultRolePermissions[role];
+  };
 
   return {
-    SUPER_ADMIN: Array.isArray(raw.SUPER_ADMIN)
-      ? raw.SUPER_ADMIN.filter(isPermission)
-      : defaultRolePermissions.SUPER_ADMIN,
-    ADMIN: Array.isArray(raw.ADMIN) ? raw.ADMIN.filter(isPermission) : defaultRolePermissions.ADMIN,
-    DISPATCHER: Array.isArray(raw.DISPATCHER)
-      ? raw.DISPATCHER.filter(isPermission)
-      : defaultRolePermissions.DISPATCHER,
-    EDITOR: Array.isArray(raw.EDITOR) ? raw.EDITOR.filter(isPermission) : defaultRolePermissions.EDITOR,
-    VIEWER: Array.isArray(raw.VIEWER) ? raw.VIEWER.filter(isPermission) : defaultRolePermissions.VIEWER,
+    SUPER_ADMIN: defaultRolePermissions.SUPER_ADMIN,
+    ADMIN: permissionsFor("ADMIN"),
+    DISPATCHER: permissionsFor("DISPATCHER"),
+    EDITOR: permissionsFor("EDITOR"),
+    VIEWER: permissionsFor("VIEWER"),
   };
 }
 

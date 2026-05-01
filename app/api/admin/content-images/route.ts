@@ -9,7 +9,7 @@ const payloadSchema = z.object({
 });
 
 export async function GET() {
-  const auth = await requireAdminPermission("content.manage");
+  const auth = await requireAdminPermission("content.view");
   if (!auth.ok) return auth.response;
 
   const imagesBySlug = await getSettingValue<Record<string, string>>("content.imagesBySlug", {});
@@ -17,7 +17,7 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
-  const auth = await requireAdminPermission("content.manage");
+  const auth = await requireAdminPermission("content.edit");
   if (!auth.ok) return auth.response;
 
   const parsed = payloadSchema.safeParse(await request.json());

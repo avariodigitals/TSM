@@ -15,7 +15,7 @@ const artisanUpdateSchema = z.object({
 });
 
 export async function GET() {
-  const auth = await requireAdminPermission("artisans.manage");
+  const auth = await requireAdminPermission("artisans.view");
   if (!auth.ok) return auth.response;
 
   const artisans = await prisma.artisan.findMany({
@@ -26,7 +26,7 @@ export async function GET() {
 }
 
 export async function PATCH(request: Request) {
-  const auth = await requireAdminPermission("artisans.manage");
+  const auth = await requireAdminPermission("artisans.edit");
   if (!auth.ok) return auth.response;
 
   const parsed = artisanUpdateSchema.safeParse(await request.json());
@@ -66,4 +66,38 @@ export async function PATCH(request: Request) {
   );
 
   return NextResponse.json({ ok: true, data: artisanIds.length === 1 ? artisans[0] : artisans });
+}
+
+export async function DELETE(request: Request) {
+  const auth = await requireAdminPermission("artisans.delete");
+  if (!auth.ok) return auth.response;
+
+  const parsed = z.object({ artisanId: z.string().min(1) }).safeParse(await request.json());
+  if (!parsed.success) {
+    return NextResponse.json({ ok: false, message: "Invalid payload." }, { status: 400 });
+  }
+
+  const before = await prisma.artisan.findUnique({ where: { id: parsed.data.artisanId } });
+  if (!before) {
+    return NextResponse.json({ ok: false, message: "Artisan not found." }, { status: 404 });
+  }
+
+  await prisma.$transaction([
+    prisma.lead.updateMany({
+      where: { assignedArtisanId: parsed.data.artisanId },
+      data: { assignedArtisanId: null, assignedById: null },
+    }),
+    prisma.artisan.delete({ where: { id: parsed.data.artisanId } }),
+  ]);
+
+  await logAudit({
+    actorId: auth.user.id,
+    action: "artisan.deleted",
+    targetType: "artisan",
+    targetId: parsed.data.artisanId,
+    before,
+    after: null,
+  });
+
+  return NextResponse.json({ ok: true });
 }

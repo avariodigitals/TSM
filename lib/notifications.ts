@@ -59,6 +59,13 @@ interface ArtisanRegistrationUserNotificationInput {
   tradeCategory: string;
 }
 
+interface ContactOwnerNotificationInput {
+  name: string;
+  email: string;
+  subject: string;
+  message: string;
+}
+
 type AssignmentEmailTemplate = {
   subject: string;
   body: string;
@@ -71,6 +78,7 @@ type NotificationEmailTemplates = {
   enquiryUser: AssignmentEmailTemplate;
   artisanRegistrationOwner: AssignmentEmailTemplate;
   artisanRegistrationUser: AssignmentEmailTemplate;
+  contactOwner: AssignmentEmailTemplate;
 };
 
 const defaultNotificationEmailTemplates: NotificationEmailTemplates = {
@@ -159,6 +167,19 @@ const defaultNotificationEmailTemplates: NotificationEmailTemplates = {
       "Our team will review your application and contact you with next steps.",
       "",
       "Total Serve Maintenance Ltd",
+    ].join("\n"),
+  },
+  contactOwner: {
+    subject: "New Contact Message: {{subject}}",
+    body: [
+      "A new contact message has been submitted.",
+      "",
+      "Name: {{name}}",
+      "Email: {{email}}",
+      "Subject: {{subject}}",
+      "",
+      "Message:",
+      "{{message}}",
     ].join("\n"),
   },
 };
@@ -259,6 +280,10 @@ async function getEmailTemplates() {
     artisanRegistrationUser: {
       ...defaultNotificationEmailTemplates.artisanRegistrationUser,
       ...(configured.artisanRegistrationUser ?? {}),
+    },
+    contactOwner: {
+      ...defaultNotificationEmailTemplates.contactOwner,
+      ...(configured.contactOwner ?? {}),
     },
   };
 }
@@ -564,6 +589,49 @@ export async function notifyArtisanRegistrationUser(input: ArtisanRegistrationUs
       template: "artisanRegistrationUser",
       recipientName: input.recipientName,
       tradeCategory: input.tradeCategory,
+    },
+  });
+}
+
+export async function notifyContactOwner(input: ContactOwnerNotificationInput) {
+  const templates = await getEmailTemplates();
+  const ownerRecipient = await resolveOwnerRecipient();
+  if (!ownerRecipient) {
+    await prisma.notificationLog.create({
+      data: {
+        channel: "email",
+        recipient: "owner",
+        subject: "New Contact Message",
+        payload: {
+          template: "contactOwner",
+          email: input.email,
+          subject: input.subject,
+        },
+        status: "failed",
+        error: "Owner recipient email is not configured (site.general.supportEmail or SMTP_FROM)",
+      },
+    });
+    return { ok: false as const, mode: "smtp" as const };
+  }
+
+  const variables = {
+    name: input.name,
+    email: input.email,
+    subject: input.subject,
+    message: input.message,
+  };
+
+  const subject = renderTemplate(templates.contactOwner.subject, variables).trim();
+  const text = renderTemplate(templates.contactOwner.body, variables).trim();
+
+  return sendAssignmentEmail({
+    recipient: ownerRecipient,
+    subject,
+    text,
+    payload: {
+      template: "contactOwner",
+      email: input.email,
+      subject: input.subject,
     },
   });
 }

@@ -12,16 +12,16 @@ export const dynamic = "force-dynamic";
 
 const links = [
   { href: "/admin", label: "Dashboard", icon: "📊", permission: null },
-  { href: "/admin/leads", label: "Enquiries / Leads", icon: "📥", permission: "leads.manage" },
-  { href: "/admin/artisans", label: "Artisan Registrations", icon: "🧰", permission: "artisans.manage" },
-  { href: "/admin/assignments", label: "Artisan Placements", icon: "📌", permission: "assignments.manage" },
-  { href: "/admin/site-content", label: "Pages", icon: "🗂️", permission: "content.manage" },
-  { href: "/admin/catalog", label: "Services & Cities", icon: "🧭", permission: "catalog.manage" },
-  { href: "/admin/content", label: "Content", icon: "📝", permission: "content.manage" },
-  { href: "/admin/settings", label: "Settings", icon: "⚙️", permission: "settings.manage" },
-  { href: "/admin/notifications", label: "Notifications", icon: "🔔", permission: "notifications.manage" },
-  { href: "/admin/users", label: "Admin Users", icon: "👤", permission: "users.manage" },
-  { href: "/admin/audit-logs", label: "Audit Trail", icon: "📚", permission: "users.manage" },
+  { href: "/admin/leads", label: "Enquiries / Leads", icon: "📥", permission: "leads.view" },
+  { href: "/admin/artisans", label: "Artisan Registrations", icon: "🧰", permission: "artisans.view" },
+  { href: "/admin/assignments", label: "Artisan Placements", icon: "📌", permission: "assignments.view" },
+  { href: "/admin/site-content", label: "Pages", icon: "🗂️", permission: "content.view" },
+  { href: "/admin/catalog", label: "Services & Cities", icon: "🧭", permission: "catalog.view" },
+  { href: "/admin/content", label: "Content", icon: "📝", permission: "content.view" },
+  { href: "/admin/settings", label: "Settings", icon: "⚙️", permission: "settings.view" },
+  { href: "/admin/notifications", label: "Notifications", icon: "🔔", permission: "notifications.view" },
+  { href: "/admin/users", label: "Admin Users", icon: "👤", permission: "users.view" },
+  { href: "/admin/audit-logs", label: "Audit Trail", icon: "📚", permission: "audit.view" },
 ];
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {

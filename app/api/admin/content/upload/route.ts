@@ -18,7 +18,7 @@ function sanitizeExtension(fileName: string) {
 }
 
 export async function POST(request: Request) {
-  const auth = await requireAdminPermission("content.manage");
+  const auth = await requireAdminPermission("content.edit");
   if (!auth.ok) return auth.response;
 
   const formData = await request.formData();
