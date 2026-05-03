@@ -25,7 +25,7 @@ export default function NotFound() {
             </div>
             <h2 className="text-2xl font-black text-[#231F20] mb-3">Let&apos;s get you back on track</h2>
             <p className="text-gray-500 text-sm leading-relaxed max-w-xl mx-auto mb-7">
-              You can return to the homepage, browse services, or submit an enquiry and the Total Serve team will help route your request.
+              You can return to the homepage, browse services, or submit an enquiry and the Totalserve team will help route your request.
             </p>
             <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
               <Link href="/">

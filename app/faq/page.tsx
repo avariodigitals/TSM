@@ -8,7 +8,7 @@ import type { Metadata } from "next";
 
 export const metadata: Metadata = {
   title: "FAQ",
-  description: "Frequently asked questions about Total Serve Maintenance Ltd.",
+  description: "Frequently asked questions about Totalserve Maintenance Ltd.",
 };
 
 export default async function FAQPage() {

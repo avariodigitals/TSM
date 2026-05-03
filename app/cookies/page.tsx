@@ -6,7 +6,7 @@ import type { Metadata } from "next";
 
 export const metadata: Metadata = {
   title: "Cookie Policy",
-  description: "Read how Total Serve Maintenance Ltd may use cookies and similar technologies.",
+  description: "Read how Totalserve Maintenance Ltd may use cookies and similar technologies.",
 };
 
 const cookieTypes = [
@@ -31,7 +31,7 @@ const cookieSections = [
   },
   {
     title: "How We May Use Them",
-    body: "Total Serve may use cookies to keep the website working, understand how visitors use the site, improve performance, support integrations, and help us deliver a smoother online experience.",
+    body: "Totalserve may use cookies to keep the website working, understand how visitors use the site, improve performance, support integrations, and help us deliver a smoother online experience.",
   },
   {
     title: "Managing Cookies",
@@ -62,7 +62,7 @@ export default async function CookiesPage() {
               <span className="text-[#00AEEF] text-sm font-semibold">Last updated: 1 May 2026</span>
             </div>
             <p className="text-gray-600 text-sm leading-relaxed">
-              This policy explains how cookies and similar technologies may be used when you visit the Total Serve website.
+              This policy explains how cookies and similar technologies may be used when you visit the Totalserve website.
             </p>
           </div>
 
@@ -87,7 +87,7 @@ export default async function CookiesPage() {
           <div className="mt-10 bg-[#231F20] rounded-2xl p-8 text-center text-white">
             <h2 className="text-2xl font-black mb-3">Questions About Cookies?</h2>
             <p className="text-gray-300 text-sm leading-relaxed mb-6">
-              Contact us if you have questions about cookies, integrations, or privacy on the Total Serve website.
+              Contact us if you have questions about cookies, integrations, or privacy on the Totalserve website.
             </p>
             <Link href="/privacy">
               <Button variant="red" size="md">View Privacy Policy</Button>

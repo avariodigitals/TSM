@@ -7,7 +7,7 @@ import type { Metadata } from "next";
 
 export const metadata: Metadata = {
   title: "Our Services",
-  description: "Browse all maintenance services offered by Total Serve across the UK.",
+  description: "Browse all maintenance services offered by Totalserve across the UK.",
 };
 
 export default async function ServicesPage() {

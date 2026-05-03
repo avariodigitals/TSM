@@ -55,13 +55,13 @@ export default function Footer({
             <Link href="/" className="flex items-center gap-3 mb-4">
               <Image
                 src={logoUrl || "/tml-logo.webp"}
-                alt="Total Serve Maintenance Ltd"
+                alt="Totalserve Maintenance Ltd"
                 width={168}
                 height={48}
                 className="h-10 w-auto"
               />
               <div>
-                <div className="font-black text-white text-lg leading-none">Total Serve</div>
+                <div className="font-black text-white text-lg leading-none">Totalserve</div>
                 <div className="text-[10px] text-[#00AEEF] font-semibold uppercase tracking-widest leading-none">
                   Maintenance Ltd
                 </div>

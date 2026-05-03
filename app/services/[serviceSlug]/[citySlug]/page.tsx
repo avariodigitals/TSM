@@ -33,7 +33,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   if (!service || !city) return {};
   return {
     title: `${service.name}s in ${city.name}`,
-    description: `Find trusted ${service.name.toLowerCase()}s in ${city.name} through Total Serve. Submit an enquiry and we'll match you with the right professional.`,
+    description: `Find trusted ${service.name.toLowerCase()}s in ${city.name} through Totalserve. Submit an enquiry and we'll match you with the right professional.`,
   };
 }
 
@@ -94,7 +94,7 @@ export default async function ServiceCityPage({ params }: Props) {
               </h2>
               <p className="text-gray-600 leading-relaxed">{service.description}</p>
               <p className="text-gray-600 leading-relaxed mt-3">
-                {city.description} Total Serve maintains a database of vetted {service.name.toLowerCase()}s serving this area, reviewed for qualifications, insurance and reliability.
+                {city.description} Totalserve maintains a database of vetted {service.name.toLowerCase()}s serving this area, reviewed for qualifications, insurance and reliability.
               </p>
             </div>
 
@@ -119,7 +119,7 @@ export default async function ServiceCityPage({ params }: Props) {
               <ol className="space-y-4">
                 {[
                   { title: "Submit Your Enquiry", desc: `Complete our short enquiry form with your job details, address in ${city.name}, and preferred contact method.` },
-                  { title: "Total Serve Reviews", desc: `Our team reviews your request and identifies the best-matched ${service.name.toLowerCase()} from our vetted ${city.name} database.` },
+                  { title: "Totalserve Reviews", desc: `Our team reviews your request and identifies the best-matched ${service.name.toLowerCase()} from our vetted ${city.name} database.` },
                   { title: "We Confirm the Match", desc: "You receive confirmation of the professional we've matched to your job, along with next steps." },
                   { title: "Job Gets Done", desc: `The ${service.name.toLowerCase()} contacts you directly to discuss your requirements and arrange the work.` },
                 ].map((step, i) => (

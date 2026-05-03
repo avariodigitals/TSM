@@ -109,7 +109,7 @@ const defaultHomeSections: HomeSections = {
   },
   blog: {
     badge: "Latest Insights",
-    title: "From the Total Serve Blog",
+    title: "From the Totalserve Blog",
     subtitle: "Maintenance guidance, practical trade advice, and updates from our team.",
     buttonLabel: "View All Articles",
   },

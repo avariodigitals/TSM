@@ -6,7 +6,7 @@ import type { Metadata } from "next";
 
 export const metadata: Metadata = {
   title: "Submit an Enquiry",
-  description: "Submit a maintenance enquiry to Total Serve and we will match you with the right professional.",
+  description: "Submit a maintenance enquiry to Totalserve and we will match you with the right professional.",
 };
 
 export default async function EnquiryPage({

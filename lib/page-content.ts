@@ -66,55 +66,55 @@ export type HomeSectionsContent = {
 
 const defaultPageHeroes: Record<string, PageHeroContent> = {
   about: {
-    title: "About Total Serve",
+    title: "About Totalserve",
     subtitle: "UK-wide maintenance support, delivered with care and professionalism.",
   },
   contact: {
     title: "Contact Us",
-    subtitle: "Have a question or need help? Get in touch with the Total Serve team.",
+    subtitle: "Have a question or need help? Get in touch with the Totalserve team.",
   },
   howItWorks: {
-    title: "How Total Serve Works",
+    title: "How Totalserve Works",
     subtitle:
       "We make finding trusted tradespeople simple. No directory browsing, no cold calls — just submit an enquiry and we handle the rest.",
   },
   services: {
     title: "Our Services",
-    subtitle: "Browse all the trades and maintenance services Total Serve covers across the United Kingdom.",
+    subtitle: "Browse all the trades and maintenance services Totalserve covers across the United Kingdom.",
   },
   cities: {
     title: "Cities We Cover",
-    subtitle: "Total Serve currently operates across these major UK cities. We are continually expanding our network.",
+    subtitle: "Totalserve currently operates across these major UK cities. We are continually expanding our network.",
   },
   faq: {
     title: "Frequently Asked Questions",
     subtitle: "Everything you need to know about submitting enquiries, our process, and joining as an artisan.",
   },
   blog: {
-    title: "Total Serve Blog",
-    subtitle: "Practical maintenance advice, trade insights, and updates from the Total Serve team.",
+    title: "Totalserve Blog",
+    subtitle: "Practical maintenance advice, trade insights, and updates from the Totalserve team.",
   },
   privacy: {
     title: "Privacy Policy",
-    subtitle: "How Total Serve handles personal information when you use our website and services.",
+    subtitle: "How Totalserve handles personal information when you use our website and services.",
   },
   terms: {
     title: "Terms of Use",
-    subtitle: "The terms that apply when you access Total Serve Maintenance Ltd online services.",
+    subtitle: "The terms that apply when you access Totalserve Maintenance Ltd online services.",
   },
   cookies: {
     title: "Cookie Policy",
-    subtitle: "How cookies and similar technologies may be used on the Total Serve website.",
+    subtitle: "How cookies and similar technologies may be used on the Totalserve website.",
   },
   enquiry: {
     title: "Submit an Enquiry",
     subtitle:
-      "Fill in the form below. Total Serve will review your request and match you with the right vetted professional for your job.",
+      "Fill in the form below. Totalserve will review your request and match you with the right vetted professional for your job.",
   },
   registerArtisan: {
     title: "Register as an Artisan",
     subtitle:
-      "Join the Total Serve artisan network. Register your trade, get reviewed, and receive relevant job opportunities across the UK.",
+      "Join the Totalserve artisan network. Register your trade, get reviewed, and receive relevant job opportunities across the UK.",
   },
   search: {
     title: "Search Results",
@@ -130,7 +130,7 @@ const defaultPageHeroes: Record<string, PageHeroContent> = {
   },
   serviceCity: {
     title: "{service} in {city}",
-    subtitle: "Total Serve matches your request with vetted local professionals for this service.",
+    subtitle: "Totalserve matches your request with vetted local professionals for this service.",
   },
 };
 
@@ -140,7 +140,7 @@ const defaultHomeHero: HomeHeroContent = {
   titleHighlight: "Tradespeople",
   titleSuffix: "Across the UK",
   subtitle:
-    "Submit an enquiry for your service and location. Total Serve reviews your request and assigns the right vetted professional — so you don't have to search alone.",
+    "Submit an enquiry for your service and location. Totalserve reviews your request and assigns the right vetted professional — so you don't have to search alone.",
   mediaMode: "none",
   mediaImageUrl: "",
   mediaSlides: [],
@@ -160,12 +160,12 @@ const defaultHomeSections: HomeSectionsContent = {
   },
   howItWorks: {
     badge: "Simple Process",
-    title: "How Total Serve Works",
+    title: "How Totalserve Works",
     subtitle: "No directory browsing. No cold calls. We handle the matching so you get the right person for the job.",
   },
   trust: {
-    badge: "Why Total Serve",
-    title: "Why Choose Total Serve?",
+    badge: "Why Totalserve",
+    title: "Why Choose Totalserve?",
     subtitle: "We're not a directory. We're a service - handling the hard work of finding the right tradesperson for you.",
   },
   emergencyCta: {
@@ -174,22 +174,22 @@ const defaultHomeSections: HomeSectionsContent = {
   },
   enquiryCta: {
     heading: "Ready to Get Started?",
-    subtext: "Submit an enquiry and let Total Serve find the right professional for you.",
+    subtext: "Submit an enquiry and let Totalserve find the right professional for you.",
   },
   artisanCta: {
-    heading: "Join the Total Serve Network",
+    heading: "Join the Totalserve Network",
     subtext: "Register your trade and get access to relevant job opportunities across the UK.",
   },
   blog: {
     badge: "Latest Insights",
-    title: "From the Total Serve Blog",
+    title: "From the Totalserve Blog",
     subtitle: "Maintenance guidance, practical trade advice, and updates from our team.",
     buttonLabel: "View All Articles",
   },
   faq: {
     badge: "Common Questions",
     title: "Frequently Asked Questions",
-    subtitle: "Everything you need to know about how Total Serve works.",
+    subtitle: "Everything you need to know about how Totalserve works.",
     buttonLabel: "View All FAQs",
   },
 };

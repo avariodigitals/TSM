@@ -25,7 +25,7 @@ export default function TwitterImage() {
           fontFamily: "Inter, Arial, sans-serif",
         }}
       >
-        <div style={{ fontSize: 34, fontWeight: 800 }}>Total Serve Maintenance Ltd</div>
+        <div style={{ fontSize: 34, fontWeight: 800 }}>Totalserve Maintenance Ltd</div>
         <div style={{ fontSize: 64, fontWeight: 900, maxWidth: 980, lineHeight: 1.05 }}>
           Trusted Tradespeople Across the UK
         </div>

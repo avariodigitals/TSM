@@ -93,7 +93,7 @@ export default async function SearchPage({
                 <div className="bg-gradient-to-br from-[#2E3192] to-[#1a1d6b] rounded-2xl p-6 text-white sticky top-24">
                   <h3 className="font-black text-lg mb-2">Ready to get help?</h3>
                   <p className="text-gray-300 text-sm mb-5">
-                    Submit an enquiry and Total Serve will assign the right {service.name.toLowerCase()} in {city.name}.
+                    Submit an enquiry and Totalserve will assign the right {service.name.toLowerCase()} in {city.name}.
                   </p>
                   <Link href={`/enquiry?service=${serviceSlug}&city=${citySlug}`}>
                     <Button variant="red" size="md" fullWidth>
@@ -146,7 +146,7 @@ export default async function SearchPage({
           <div className="text-5xl mb-5">🗺️</div>
           <h2 className="text-2xl font-black text-[#231F20] mb-3">We&apos;re Growing</h2>
           <p className="text-gray-500 leading-relaxed mb-8">
-            Total Serve is continually expanding our artisan network across the UK. If your area isn&apos;t listed, submit a general enquiry and we&apos;ll try to accommodate your request or notify you when coverage arrives.
+            Totalserve is continually expanding our artisan network across the UK. If your area isn&apos;t listed, submit a general enquiry and we&apos;ll try to accommodate your request or notify you when coverage arrives.
           </p>
           <div className="flex flex-col sm:flex-row gap-3 justify-center">
             <Link href="/enquiry">

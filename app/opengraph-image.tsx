@@ -42,7 +42,7 @@ export default function OpenGraphImage() {
             TML
           </div>
           <div style={{ display: "flex", flexDirection: "column" }}>
-            <span style={{ fontSize: 42, fontWeight: 800, lineHeight: 1.1 }}>Total Serve</span>
+            <span style={{ fontSize: 42, fontWeight: 800, lineHeight: 1.1 }}>Totalserve</span>
             <span style={{ fontSize: 18, opacity: 0.88, letterSpacing: 1.2 }}>Maintenance Ltd</span>
           </div>
         </div>
@@ -52,7 +52,7 @@ export default function OpenGraphImage() {
             Find Trusted Tradespeople Across the UK
           </div>
           <div style={{ fontSize: 28, opacity: 0.9 }}>
-            Submit an enquiry. Total Serve assigns the right professional.
+            Submit an enquiry. Totalserve assigns the right professional.
           </div>
         </div>
 

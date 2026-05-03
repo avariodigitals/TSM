@@ -97,7 +97,7 @@ export const services: Service[] = [
     slug: "cleaner",
     icon: "✨",
     description:
-      "Reliable cleaning professionals for domestic and commercial properties. From regular housekeeping to deep cleans and end-of-tenancy cleans, Total Serve connects you with vetted cleaners.",
+      "Reliable cleaning professionals for domestic and commercial properties. From regular housekeeping to deep cleans and end-of-tenancy cleans, Totalserve connects you with vetted cleaners.",
     shortDescription: "Vetted cleaners for domestic, commercial and end-of-tenancy cleans.",
     commonIssues: [
       "Regular domestic cleaning",
@@ -351,7 +351,7 @@ export function getCitiesForService(serviceSlug: string): City[] {
 
 export const faqs: FAQItem[] = [
   {
-    question: "How does Total Serve work?",
+    question: "How does Totalserve work?",
     answer:
       "You submit an enquiry for the service you need and your location. Our team reviews your request and assigns the most suitable, vetted professional from our artisan network. You'll be contacted directly to arrange the work.",
     category: "general",
@@ -359,7 +359,7 @@ export const faqs: FAQItem[] = [
   {
     question: "Can I book an artisan directly through the website?",
     answer:
-      "No — Total Serve operates differently from a booking marketplace. We carefully review each enquiry and match you with the right professional for your specific job. This ensures quality and the right skills for every task.",
+      "No — Totalserve operates differently from a booking marketplace. We carefully review each enquiry and match you with the right professional for your specific job. This ensures quality and the right skills for every task.",
     category: "general",
   },
   {
@@ -371,11 +371,11 @@ export const faqs: FAQItem[] = [
   {
     question: "Are the tradespeople vetted and insured?",
     answer:
-      "Yes. All artisans in the Total Serve network are vetted before joining. We check qualifications, certifications (such as Gas Safe registration for gas engineers), public liability insurance, and references.",
+      "Yes. All artisans in the Totalserve network are vetted before joining. We check qualifications, certifications (such as Gas Safe registration for gas engineers), public liability insurance, and references.",
     category: "artisans",
   },
   {
-    question: "What areas does Total Serve cover?",
+    question: "What areas does Totalserve cover?",
     answer:
       "We currently serve major UK cities including London, Manchester, Birmingham, Leeds, Liverpool, Glasgow, Bristol, Sheffield, Edinburgh and more. We are continually expanding our network.",
     category: "general",
@@ -383,13 +383,13 @@ export const faqs: FAQItem[] = [
   {
     question: "How do I register as an artisan or tradesperson?",
     answer:
-      "Visit our 'Register as an Artisan' page and complete the registration form. Our team will review your details, qualifications and experience before welcoming you into the Total Serve network.",
+      "Visit our 'Register as an Artisan' page and complete the registration form. Our team will review your details, qualifications and experience before welcoming you into the Totalserve network.",
     category: "artisans",
   },
   {
     question: "Is there a fee to submit an enquiry?",
     answer:
-      "No. Submitting an enquiry through Total Serve is completely free for customers. There is no charge to use our matching service.",
+      "No. Submitting an enquiry through Totalserve is completely free for customers. There is no charge to use our matching service.",
     category: "pricing",
   },
   {

@@ -89,7 +89,7 @@ export async function POST(request: Request) {
         id: lead.id,
         status: "received",
         message:
-          "Your enquiry has been received. Total Serve will review your request and contact you shortly.",
+          "Your enquiry has been received. Totalserve will review your request and contact you shortly.",
       },
       { status: 201 }
     );

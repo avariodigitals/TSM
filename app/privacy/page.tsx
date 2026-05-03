@@ -6,7 +6,7 @@ import type { Metadata } from "next";
 
 export const metadata: Metadata = {
   title: "Privacy Policy",
-  description: "Read how Total Serve Maintenance Ltd collects, uses and protects personal information.",
+  description: "Read how Totalserve Maintenance Ltd collects, uses and protects personal information.",
 };
 
 const privacySections = [
@@ -21,7 +21,7 @@ const privacySections = [
     title: "How We Use Information",
     body: [
       "We use personal information to respond to enquiries, review job requests, match customers with suitable tradespeople, assess artisan registrations, provide support, manage our records, and improve our services.",
-      "We may also use information to send service-related updates, protect the website from misuse, meet legal obligations, and maintain the safety and quality of the Total Serve network.",
+      "We may also use information to send service-related updates, protect the website from misuse, meet legal obligations, and maintain the safety and quality of the Totalserve network.",
     ],
   },
   {
@@ -66,7 +66,7 @@ export default async function PrivacyPage() {
               <span className="text-[#00AEEF] text-sm font-semibold">Last updated: 1 May 2026</span>
             </div>
             <p className="text-gray-600 text-sm leading-relaxed">
-              This policy explains how Total Serve Maintenance Ltd handles information collected through this website and related enquiry services. It is intended as a clear service overview and should be reviewed alongside any specific notices we provide when collecting information.
+              This policy explains how Totalserve Maintenance Ltd handles information collected through this website and related enquiry services. It is intended as a clear service overview and should be reviewed alongside any specific notices we provide when collecting information.
             </p>
           </div>
 
@@ -88,7 +88,7 @@ export default async function PrivacyPage() {
           <div className="mt-10 bg-[#2E3192] rounded-2xl p-8 text-center text-white">
             <h2 className="text-2xl font-black mb-3">Questions About Your Data?</h2>
             <p className="text-blue-100 text-sm leading-relaxed mb-6">
-              Contact the Total Serve team if you need help with a privacy request or want to understand how your details are used.
+              Contact the Totalserve team if you need help with a privacy request or want to understand how your details are used.
             </p>
             <Link href="/contact">
               <Button variant="red" size="md">Contact Us</Button>

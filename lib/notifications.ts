@@ -83,11 +83,11 @@ type NotificationEmailTemplates = {
 
 const defaultNotificationEmailTemplates: NotificationEmailTemplates = {
   artisanAssignment: {
-    subject: "New Total Serve Assignment: {{serviceNeeded}} in {{city}}",
+    subject: "New Totalserve Assignment: {{serviceNeeded}} in {{city}}",
     body: [
       "Hello {{recipientName}},",
       "",
-      "A new customer enquiry has been assigned to you by Total Serve.",
+      "A new customer enquiry has been assigned to you by Totalserve.",
       "Customer: {{leadName}}",
       "Service: {{serviceNeeded}}",
       "Location: {{city}}",
@@ -95,11 +95,11 @@ const defaultNotificationEmailTemplates: NotificationEmailTemplates = {
       "",
       "Please log in to your workflow and confirm availability.",
       "",
-      "Total Serve Maintenance Ltd",
+      "Totalserve Maintenance Ltd",
     ].join("\n"),
   },
   userAssignment: {
-    subject: "Your Total Serve enquiry update: {{serviceNeeded}} in {{city}}",
+    subject: "Your Totalserve enquiry update: {{serviceNeeded}} in {{city}}",
     body: [
       "Hello {{recipientName}},",
       "",
@@ -112,7 +112,7 @@ const defaultNotificationEmailTemplates: NotificationEmailTemplates = {
       "",
       "Our team will continue to coordinate the next steps.",
       "",
-      "Total Serve Maintenance Ltd",
+      "Totalserve Maintenance Ltd",
     ].join("\n"),
   },
   enquiryOwner: {
@@ -134,14 +134,14 @@ const defaultNotificationEmailTemplates: NotificationEmailTemplates = {
     ].join("\n"),
   },
   enquiryUser: {
-    subject: "We received your Total Serve enquiry",
+    subject: "We received your Totalserve enquiry",
     body: [
       "Hello {{recipientName}},",
       "",
-      "Thanks for contacting Total Serve.",
+      "Thanks for contacting Totalserve.",
       "We have received your enquiry for {{serviceNeeded}} in {{city}} and our team will review it shortly.",
       "",
-      "Total Serve Maintenance Ltd",
+      "Totalserve Maintenance Ltd",
     ].join("\n"),
   },
   artisanRegistrationOwner: {
@@ -163,10 +163,10 @@ const defaultNotificationEmailTemplates: NotificationEmailTemplates = {
     body: [
       "Hello {{recipientName}},",
       "",
-      "Thank you for registering as a Total Serve artisan in {{tradeCategory}}.",
+      "Thank you for registering as a Totalserve artisan in {{tradeCategory}}.",
       "Our team will review your application and contact you with next steps.",
       "",
-      "Total Serve Maintenance Ltd",
+      "Totalserve Maintenance Ltd",
     ].join("\n"),
   },
   contactOwner: {
@@ -210,7 +210,7 @@ type SmtpSettings = {
   from: string;
 };
 
-const emailSenderName = "Total Serve Maintenance";
+const emailSenderName = "Totalserve Maintenance";
 
 function formatSender(from: string) {
   const match = from.match(/<([^>]+)>/);
@@ -389,7 +389,7 @@ async function resolveOwnerRecipient(explicitRecipient?: string) {
   }
 
   const general = await getSettingValue<SiteGeneralSettings>("site.general", {
-    siteName: "Total Serve Maintenance Ltd",
+    siteName: "Totalserve Maintenance Ltd",
     supportEmail: process.env.SMTP_FROM ?? "",
     supportPhone: "",
     siteUrl: "",
@@ -678,7 +678,7 @@ export async function sendNewUserCredentialsEmail({
     return { ok: true, mode: "dry-run" };
   }
 
-  const subject = "Your Total Serve Admin Account Credentials";
+  const subject = "Your Totalserve Admin Account Credentials";
   const text = [
     `Hello ${fullName},`,
     "",
@@ -694,7 +694,7 @@ export async function sendNewUserCredentialsEmail({
     "",
     "If you did not request this account, please contact your administrator immediately.",
     "",
-    "Total Serve Maintenance Ltd",
+    "Totalserve Maintenance Ltd",
   ].join("\n");
 
   const transporter = nodemailer.createTransport({

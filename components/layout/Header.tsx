@@ -33,7 +33,7 @@ export default function Header({
           <Link href="/" className="flex items-center gap-3 flex-shrink-0">
             <Image
               src={logoUrl || "/tml-logo.webp"}
-              alt="Total Serve Maintenance Ltd"
+              alt="Totalserve Maintenance Ltd"
               width={168}
               height={48}
               priority
@@ -41,7 +41,7 @@ export default function Header({
             />
             <div className="hidden sm:block">
               <div className="font-black text-[#2E3192] text-lg leading-none tracking-tight">
-                Total Serve
+                Totalserve
               </div>
               <div className="text-[10px] text-[#00AEEF] font-semibold uppercase tracking-widest leading-none">
                 Maintenance Ltd

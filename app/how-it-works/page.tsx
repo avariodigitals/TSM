@@ -6,7 +6,7 @@ import type { Metadata } from "next";
 
 export const metadata: Metadata = {
   title: "How It Works",
-  description: "Learn how Total Serve connects you with trusted tradespeople across the UK.",
+  description: "Learn how Totalserve connects you with trusted tradespeople across the UK.",
 };
 
 export default async function HowItWorksPage() {
