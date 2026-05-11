@@ -132,6 +132,12 @@ type SiteFooterSettings = {
   legalLinks: Array<{ href: string; label: string }>;
 };
 
+type LaunchBannerSettings = {
+  enabled: boolean;
+  message: string;
+  hideFrontend: boolean;
+};
+
 const defaultIntegrations: IntegrationsConfig = {
   analytics: { enabled: false, script: "" },
   searchConsole: { enabled: false, verification: "" },
@@ -189,17 +195,24 @@ const defaultFooter: SiteFooterSettings = {
   ],
 };
 
+const defaultLaunchBanner: LaunchBannerSettings = {
+  enabled: false,
+  message: "We are launching soon.",
+  hideFrontend: false,
+};
+
 export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const [integrations, branding, headerFooter, general, footer, catalog] = await Promise.all([
+  const [integrations, branding, headerFooter, general, footer, launchBanner, catalog] = await Promise.all([
     getSettingValue<IntegrationsConfig>("site.integrations", defaultIntegrations),
     getSettingValue<SiteBrandingSettings>("site.branding", defaultBranding),
     getSettingValue<SiteHeaderFooterSettings>("site.headerFooter", defaultHeaderFooter),
     getSettingValue<SiteGeneralSettings>("site.general", defaultGeneral),
     getSettingValue<SiteFooterSettings>("site.footer", defaultFooter),
+    getSettingValue<LaunchBannerSettings>("site.launchBanner", defaultLaunchBanner),
     getCatalogData(),
   ]);
 
@@ -215,7 +228,14 @@ export default async function RootLayout({
       <body className="min-h-full flex flex-col bg-white text-[#231F20]">
         <SiteChrome
           integrations={integrations}
-          siteSettings={{ branding, headerFooter, general, footer, catalog: { services: catalog.services, cities: catalog.cities } }}
+          siteSettings={{
+            branding,
+            headerFooter,
+            general,
+            footer,
+            launchBanner,
+            catalog: { services: catalog.services, cities: catalog.cities },
+          }}
         >
           {children}
         </SiteChrome>

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Script from "next/script";
 import type { Service, City } from "@/lib/types";
 import Button from "@/components/ui/Button";
 
@@ -19,6 +20,7 @@ export default function EnquiryForm({
   services,
   cities,
 }: EnquiryFormProps) {
+  const turnstileSiteKey = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY ?? "";
   const [submitted, setSubmitted] = useState(false);
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
@@ -32,6 +34,8 @@ export default function EnquiryForm({
     jobDescription: "",
     urgencyLevel: prefilledUrgency || "standard",
     preferredContact: "email",
+    website: "",
+    startedAt: Date.now(),
   });
 
   const handleChange = (
@@ -40,17 +44,28 @@ export default function EnquiryForm({
     setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setErrorMessage("");
     setLoading(true);
+
+    const captchaToken = turnstileSiteKey
+      ? e.currentTarget.querySelector<HTMLInputElement>('input[name="cf-turnstile-response"]')?.value ?? ""
+      : "";
+
+    if (turnstileSiteKey && !captchaToken) {
+      setErrorMessage("Please complete the captcha to continue.");
+      setLoading(false);
+      return;
+    }
+
     try {
       const response = await fetch("/api/enquiries", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(form),
+        body: JSON.stringify({ ...form, captchaToken }),
       });
 
       if (!response.ok) {
@@ -86,6 +101,10 @@ export default function EnquiryForm({
 
   return (
     <form onSubmit={handleSubmit} className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 sm:p-8 space-y-5">
+      {turnstileSiteKey ? (
+        <Script src="https://challenges.cloudflare.com/turnstile/v0/api.js" strategy="afterInteractive" />
+      ) : null}
+
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
         <div>
           <label className="block text-sm font-semibold text-[#231F20] mb-1.5">
@@ -198,6 +217,19 @@ export default function EnquiryForm({
         />
       </div>
 
+      <div className="hidden" aria-hidden="true">
+        <label htmlFor="enquiry-website">Company website</label>
+        <input
+          id="enquiry-website"
+          type="text"
+          name="website"
+          tabIndex={-1}
+          autoComplete="off"
+          value={form.website}
+          onChange={handleChange}
+        />
+      </div>
+
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
         <div>
           <label className="block text-sm font-semibold text-[#231F20] mb-1.5">
@@ -232,6 +264,12 @@ export default function EnquiryForm({
       </div>
 
       <div className="pt-2">
+        {turnstileSiteKey ? (
+          <div className="mb-3 flex justify-center">
+            <div className="cf-turnstile" data-sitekey={turnstileSiteKey} data-theme="light" />
+          </div>
+        ) : null}
+
         {errorMessage ? (
           <p className="text-sm text-[#ED1C24] text-center mb-3">{errorMessage}</p>
         ) : null}

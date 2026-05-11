@@ -46,6 +46,7 @@ export default function LeadsManager({ leads, artisans }: { leads: LeadRow[]; ar
   const router = useRouter();
   const [pendingId, setPendingId] = useState<string | null>(null);
   const [isBulkSaving, setIsBulkSaving] = useState(false);
+  const [isBulkDeleting, setIsBulkDeleting] = useState(false);
   const [error, setError] = useState<string>("");
   const [query, setQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("ALL");
@@ -167,6 +168,42 @@ export default function LeadsManager({ leads, artisans }: { leads: LeadRow[]; ar
     router.refresh();
   }
 
+  async function applyBulkDelete() {
+    if (selectedLeadIds.length === 0) {
+      showToast("Select at least one lead to delete.", "info");
+      return;
+    }
+
+    if (!window.confirm(`Delete ${selectedLeadIds.length} selected lead(s)? This cannot be undone.`)) {
+      return;
+    }
+
+    setError("");
+    setIsBulkDeleting(true);
+
+    const selectedIds = [...selectedLeadIds];
+    const response = await fetch("/api/admin/leads", {
+      method: "DELETE",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ leadIds: selectedIds }),
+    });
+
+    setIsBulkDeleting(false);
+
+    if (!response.ok) {
+      setError(await getErrorMessage(response, "Failed to delete selected leads."));
+      showToast("Bulk lead delete failed.", "error");
+      return;
+    }
+
+    setSelectedLeadIds([]);
+    if (viewLead && selectedIds.includes(viewLead.id)) {
+      setViewLead(null);
+    }
+    showToast(`Deleted ${selectedIds.length} lead${selectedIds.length === 1 ? "" : "s"}.`);
+    router.refresh();
+  }
+
   function toggleLeadSelection(leadId: string, checked: boolean) {
     setSelectedLeadIds((current) => {
       if (checked) {
@@ -198,7 +235,7 @@ export default function LeadsManager({ leads, artisans }: { leads: LeadRow[]; ar
         <div className="mt-4 flex flex-col gap-3 rounded-xl border border-gray-200 bg-[#F5F7FA] p-4 lg:flex-row lg:items-end lg:justify-between">
           <div>
             <p className="text-sm font-semibold text-[#231F20]">Bulk lead actions</p>
-            <p className="text-sm text-gray-500">Close or progress multiple enquiries at once.</p>
+            <p className="text-sm text-gray-500">Update status or permanently delete multiple enquiries at once.</p>
           </div>
           <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
             <label className="space-y-1 text-sm font-medium text-[#231F20]">
@@ -219,10 +256,18 @@ export default function LeadsManager({ leads, artisans }: { leads: LeadRow[]; ar
             <button
               type="button"
               onClick={() => void applyBulkStatus()}
-              disabled={isBulkSaving || selectedCount === 0 || !bulkStatus}
+              disabled={isBulkSaving || isBulkDeleting || selectedCount === 0 || !bulkStatus}
               className="rounded-lg bg-[#2E3192] px-4 py-2 font-semibold text-white disabled:cursor-not-allowed disabled:opacity-50"
             >
               {isBulkSaving ? "Applying..." : `Apply to ${selectedCount} selected`}
+            </button>
+            <button
+              type="button"
+              onClick={() => void applyBulkDelete()}
+              disabled={isBulkDeleting || isBulkSaving || selectedCount === 0}
+              className="rounded-lg border border-red-200 px-4 py-2 font-semibold text-red-600 hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              {isBulkDeleting ? "Deleting..." : `Delete ${selectedCount} selected`}
             </button>
           </div>
         </div>

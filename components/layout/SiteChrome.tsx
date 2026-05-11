@@ -59,6 +59,11 @@ type SiteChromeSettings = {
     developerUrl: string;
     legalLinks: Array<{ href: string; label: string }>;
   };
+  launchBanner: {
+    enabled: boolean;
+    message: string;
+    hideFrontend: boolean;
+  };
   catalog: {
     services: Service[];
     cities: City[];
@@ -89,6 +94,25 @@ export default function SiteChrome({
       )}`
     : "";
 
+  const launchMessage = siteSettings.launchBanner.message.trim() || "We are launching soon.";
+
+  if (siteSettings.launchBanner.enabled && siteSettings.launchBanner.hideFrontend) {
+    return (
+      <main className="min-h-screen bg-gradient-to-b from-[#F5F7FA] to-white px-6 py-16">
+        <div className="mx-auto flex min-h-[70vh] w-full max-w-3xl items-center justify-center">
+          <div className="w-full rounded-3xl border border-amber-200 bg-[#FFF9DB] p-8 text-center shadow-sm sm:p-12">
+            <p className="text-xs font-black uppercase tracking-[0.2em] text-amber-700">Temporary Notice</p>
+            <h1 className="mt-3 text-3xl font-black text-[#231F20] sm:text-4xl">Total Serve Maintenance Ltd</h1>
+            <p className="mt-5 text-lg font-semibold text-[#231F20] sm:text-xl">{launchMessage}</p>
+            <p className="mt-4 text-sm leading-relaxed text-gray-600">
+              Our public pages are currently unavailable while we prepare for launch.
+            </p>
+          </div>
+        </div>
+      </main>
+    );
+  }
+
   return (
     <>
       {integrations.analytics.enabled && integrations.analytics.script ? (
@@ -110,6 +134,12 @@ export default function SiteChrome({
             {item.script}
           </Script>
         ))}
+
+      {siteSettings.launchBanner.enabled && siteSettings.launchBanner.message.trim() ? (
+        <div className="bg-[#FDE047] border-b border-amber-300 px-4 py-2 text-center text-sm font-semibold text-[#231F20]">
+          {siteSettings.launchBanner.message}
+        </div>
+      ) : null}
 
       <Header
         logoUrl={siteSettings.branding.logoUrl}

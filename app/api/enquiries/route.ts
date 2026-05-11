@@ -1,6 +1,15 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { notifyEnquiryOwner, notifyEnquiryUser } from "@/lib/notifications";
+import {
+  getRequestIp,
+  hasSuspiciousContent,
+  sanitizeMultiline,
+  sanitizeSingleLine,
+  validateSpamGuard,
+  verifyTurnstileToken,
+} from "@/lib/form-security";
+import { enforceRateLimit } from "@/lib/rate-limit";
 
 interface EnquiryPayload {
   fullName: string;
@@ -12,6 +21,9 @@ interface EnquiryPayload {
   jobDescription: string;
   urgencyLevel: "standard" | "urgent" | "emergency";
   preferredContact: "email" | "phone" | "whatsapp";
+  website?: string;
+  startedAt?: number;
+  captchaToken?: string;
 }
 
 function isEnquiryPayload(value: unknown): value is EnquiryPayload {
@@ -32,6 +44,29 @@ function isEnquiryPayload(value: unknown): value is EnquiryPayload {
 
 export async function POST(request: Request) {
   try {
+    const requestIp = getRequestIp(request) || "unknown";
+    const rateLimit = enforceRateLimit({
+      scope: "enquiries",
+      key: requestIp,
+      maxRequests: 5,
+      windowMs: 10 * 60 * 1000,
+    });
+
+    if (!rateLimit.ok) {
+      return NextResponse.json(
+        {
+          ok: false,
+          message: "Too many submissions from this network. Please try again shortly.",
+        },
+        {
+          status: 429,
+          headers: {
+            "Retry-After": String(rateLimit.retryAfterSeconds),
+          },
+        }
+      );
+    }
+
     const json: unknown = await request.json();
 
     if (!isEnquiryPayload(json)) {
@@ -44,40 +79,83 @@ export async function POST(request: Request) {
       );
     }
 
+    const spamGuard = validateSpamGuard({
+      honeypot: json.website,
+      startedAt: json.startedAt,
+      minDurationMs: 1500,
+    });
+
+    if (!spamGuard.ok) {
+      return NextResponse.json({ ok: false, message: "Submission failed validation." }, { status: 400 });
+    }
+
+    const captchaResult = await verifyTurnstileToken(json.captchaToken, requestIp);
+    if (!captchaResult.ok) {
+      return NextResponse.json({ ok: false, message: "Captcha verification failed." }, { status: 400 });
+    }
+
+    const payload = {
+      fullName: sanitizeSingleLine(json.fullName, 120),
+      email: sanitizeSingleLine(json.email, 160).toLowerCase(),
+      phone: sanitizeSingleLine(json.phone, 40),
+      serviceNeeded: sanitizeSingleLine(json.serviceNeeded, 100),
+      city: sanitizeSingleLine(json.city, 80),
+      postcode: sanitizeSingleLine(json.postcode, 20),
+      jobDescription: sanitizeMultiline(json.jobDescription, 4000),
+      urgencyLevel: json.urgencyLevel,
+      preferredContact: json.preferredContact,
+    };
+
+    if (
+      !payload.fullName ||
+      !payload.email ||
+      !payload.phone ||
+      !payload.serviceNeeded ||
+      !payload.city ||
+      !payload.postcode ||
+      !payload.jobDescription
+    ) {
+      return NextResponse.json({ ok: false, message: "Please complete all required fields." }, { status: 400 });
+    }
+
+    if (hasSuspiciousContent(payload.jobDescription, payload.fullName)) {
+      return NextResponse.json({ ok: false, message: "Please remove links or scripts from your enquiry." }, { status: 400 });
+    }
+
     const lead = await prisma.lead.create({
       data: {
-        fullName: json.fullName,
-        email: json.email.toLowerCase().trim(),
-        phone: json.phone,
-        serviceNeeded: json.serviceNeeded,
-        city: json.city,
-        postcode: json.postcode,
-        jobDescription: json.jobDescription,
-        urgencyLevel: json.urgencyLevel,
-        preferredContact: json.preferredContact,
+        fullName: payload.fullName,
+        email: payload.email,
+        phone: payload.phone,
+        serviceNeeded: payload.serviceNeeded,
+        city: payload.city,
+        postcode: payload.postcode,
+        jobDescription: payload.jobDescription,
+        urgencyLevel: payload.urgencyLevel,
+        preferredContact: payload.preferredContact,
       },
     });
 
-    const leadEmail = json.email.toLowerCase().trim();
+    const leadEmail = payload.email;
 
     try {
       await notifyEnquiryOwner({
-        leadName: json.fullName,
+        leadName: payload.fullName,
         leadEmail,
-        leadPhone: json.phone,
-        serviceNeeded: json.serviceNeeded,
-        city: json.city,
-        postcode: json.postcode,
-        urgencyLevel: json.urgencyLevel,
-        preferredContact: json.preferredContact,
-        jobDescription: json.jobDescription,
+        leadPhone: payload.phone,
+        serviceNeeded: payload.serviceNeeded,
+        city: payload.city,
+        postcode: payload.postcode,
+        urgencyLevel: payload.urgencyLevel,
+        preferredContact: payload.preferredContact,
+        jobDescription: payload.jobDescription,
       });
 
       await notifyEnquiryUser({
         recipientEmail: leadEmail,
-        recipientName: json.fullName,
-        serviceNeeded: json.serviceNeeded,
-        city: json.city,
+        recipientName: payload.fullName,
+        serviceNeeded: payload.serviceNeeded,
+        city: payload.city,
       });
     } catch (error) {
       console.error("enquiry notification error", error);

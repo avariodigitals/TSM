@@ -89,26 +89,41 @@ export async function DELETE(request: Request) {
   const auth = await requireAdminPermission("leads.delete");
   if (!auth.ok) return auth.response;
 
-  const parsed = z.object({ leadId: z.string().min(1) }).safeParse(await request.json());
+  const parsed = z
+    .object({
+      leadId: z.string().min(1).optional(),
+      leadIds: z.array(z.string().min(1)).min(1).optional(),
+    })
+    .refine((value) => Boolean(value.leadId) || Boolean(value.leadIds?.length), {
+      message: "At least one lead id is required.",
+    })
+    .safeParse(await request.json());
   if (!parsed.success) {
     return NextResponse.json({ ok: false, message: "Invalid payload." }, { status: 400 });
   }
 
-  const before = await prisma.lead.findUnique({ where: { id: parsed.data.leadId } });
-  if (!before) {
+  const leadIds = parsed.data.leadIds ?? [parsed.data.leadId!];
+  const before = await prisma.lead.findMany({ where: { id: { in: leadIds } } });
+
+  if (before.length === 0) {
     return NextResponse.json({ ok: false, message: "Lead not found." }, { status: 404 });
   }
 
-  await prisma.lead.delete({ where: { id: parsed.data.leadId } });
+  await prisma.lead.deleteMany({ where: { id: { in: leadIds } } });
 
-  await logAudit({
-    actorId: auth.user.id,
-    action: "lead.deleted",
-    targetType: "lead",
-    targetId: parsed.data.leadId,
-    before,
-    after: null,
-  });
+  await Promise.all(
+    before.map((lead) =>
+      logAudit({
+        actorId: auth.user.id,
+        action: leadIds.length > 1 ? "lead.bulk_deleted" : "lead.deleted",
+        targetType: "lead",
+        targetId: lead.id,
+        before: lead,
+        after: null,
+        metadata: leadIds.length > 1 ? { batchSize: leadIds.length } : undefined,
+      })
+    )
+  );
 
-  return NextResponse.json({ ok: true });
+  return NextResponse.json({ ok: true, deletedCount: before.length });
 }

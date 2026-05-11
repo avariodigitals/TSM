@@ -61,6 +61,12 @@ type MaintenanceSettings = {
   auditLogRetentionDays: number;
 };
 
+type LaunchBannerSettings = {
+  enabled: boolean;
+  message: string;
+  hideFrontend: boolean;
+};
+
 type SiteFooterSettings = {
   locationLabel: string;
   locationValue: string;
@@ -283,6 +289,13 @@ export default function SettingsManager({ settings }: { settings: SettingRow[] }
     (settingsMap.get("site.maintenance") as MaintenanceSettings | undefined) ?? {
       notificationLogRetentionDays: 90,
       auditLogRetentionDays: 180,
+    }
+  );
+  const [launchBannerDraft, setLaunchBannerDraft] = useState<LaunchBannerSettings>(
+    (settingsMap.get("site.launchBanner") as LaunchBannerSettings | undefined) ?? {
+      enabled: false,
+      message: "We are launching soon.",
+      hideFrontend: false,
     }
   );
   const [isApplyingRetention, setIsApplyingRetention] = useState(false);
@@ -606,6 +619,53 @@ export default function SettingsManager({ settings }: { settings: SettingRow[] }
             disabled={isSaving}
           >
             Save Integrations
+          </button>
+        </div>
+
+        <div className="rounded-xl border border-gray-200 p-4 space-y-3">
+          <h2 className="text-lg font-black text-[#231F20]">Launch Banner</h2>
+          <label className="inline-flex items-center gap-2 text-sm font-semibold text-[#231F20]">
+            <input
+              type="checkbox"
+              checked={launchBannerDraft.enabled}
+              onChange={(event) =>
+                setLaunchBannerDraft((current) => ({ ...current, enabled: event.target.checked }))
+              }
+            />
+            Show launch banner on the public website
+          </label>
+          <label className="inline-flex items-center gap-2 text-sm font-semibold text-[#231F20]">
+            <input
+              type="checkbox"
+              checked={launchBannerDraft.hideFrontend}
+              onChange={(event) =>
+                setLaunchBannerDraft((current) => ({ ...current, hideFrontend: event.target.checked }))
+              }
+            />
+            Hide all public pages and show only the launch message
+          </label>
+          <input
+            value={launchBannerDraft.message}
+            onChange={(event) =>
+              setLaunchBannerDraft((current) => ({ ...current, message: event.target.value }))
+            }
+            placeholder="Banner message"
+            className="w-full rounded-md border border-gray-300 px-3 py-2"
+          />
+          <button
+            type="button"
+            onClick={() =>
+              void saveStructuredSetting(
+                "site.launchBanner",
+                launchBannerDraft,
+                "Frontend launch banner visibility and copy",
+                "Launch banner settings saved."
+              )
+            }
+            className="rounded-lg bg-[#2E3192] px-4 py-2 font-semibold text-white disabled:opacity-50"
+            disabled={isSaving}
+          >
+            Save Launch Banner
           </button>
         </div>
 
